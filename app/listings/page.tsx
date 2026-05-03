@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { ProductCard } from "@/components/listings/product-card"
-import { ListingsFilter } from "@/components/listings/listings-filter"
+import { ListingsFilter, type FilterCounts } from "@/components/listings/listings-filter"
 import { CategoryHero } from "@/components/listings/category-hero"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Grid3X3, LayoutGrid } from "lucide-react"
 
-// Mock data - would come from API
+// Mock data — would come from API
 const mockListings = [
   {
     id: "1",
@@ -27,8 +27,15 @@ const mockListings = [
     image: "/images/listing-1.jpg",
     seller: { name: "سارة", rating: 4.9 },
     condition: "ممتاز",
+    conditionId: "excellent",
+    category: "dresses",
     size: "M",
     isFeatured: true,
+    colors: [
+      { name: "ذهبي", hex: "#d4af37" },
+      { name: "أسود", hex: "#1a1a1a" },
+      { name: "عاجي", hex: "#fffff0" },
+    ],
   },
   {
     id: "2",
@@ -38,7 +45,13 @@ const mockListings = [
     image: "/images/listing-2.jpg",
     seller: { name: "نورة", rating: 5.0 },
     condition: "جديد",
+    conditionId: "new",
+    category: "bags",
     isFeatured: false,
+    colors: [
+      { name: "أسود", hex: "#1a1a1a" },
+      { name: "بيج", hex: "#c8a882" },
+    ],
   },
   {
     id: "3",
@@ -48,8 +61,16 @@ const mockListings = [
     image: "/images/listing-3.jpg",
     seller: { name: "دلال", rating: 4.8 },
     condition: "ممتاز",
+    conditionId: "excellent",
+    category: "abayas",
     size: "L",
     isFeatured: true,
+    colors: [
+      { name: "كحلي", hex: "#1e2952" },
+      { name: "عنابي", hex: "#722f37" },
+      { name: "أخضر", hex: "#3d5a3d" },
+      { name: "أسود", hex: "#1a1a1a" },
+    ],
   },
   {
     id: "4",
@@ -59,7 +80,13 @@ const mockListings = [
     image: "/images/listing-4.jpg",
     seller: { name: "منى", rating: 4.9 },
     condition: "ممتاز",
+    conditionId: "excellent",
+    category: "dresses",
     size: "S",
+    colors: [
+      { name: "أبيض", hex: "#ffffff" },
+      { name: "شامبانيا", hex: "#f7e7ce" },
+    ],
   },
   {
     id: "5",
@@ -69,7 +96,13 @@ const mockListings = [
     image: "/images/listing-1.jpg",
     seller: { name: "هند", rating: 4.7 },
     condition: "جيد",
+    conditionId: "good",
+    category: "dresses",
     size: "M",
+    colors: [
+      { name: "أسود", hex: "#1a1a1a" },
+      { name: "رمادي", hex: "#808080" },
+    ],
   },
   {
     id: "6",
@@ -79,6 +112,12 @@ const mockListings = [
     image: "/images/listing-2.jpg",
     seller: { name: "فاطمة", rating: 5.0 },
     condition: "جديد",
+    conditionId: "new",
+    category: "jewelry",
+    colors: [
+      { name: "لؤلؤي", hex: "#f5f0e8" },
+      { name: "ذهبي", hex: "#d4af37" },
+    ],
   },
   {
     id: "7",
@@ -88,7 +127,10 @@ const mockListings = [
     image: "/images/listing-3.jpg",
     seller: { name: "مريم", rating: 4.6 },
     condition: "ممتاز",
+    conditionId: "excellent",
+    category: "abayas",
     size: "XL",
+    colors: [{ name: "أسود", hex: "#1a1a1a" }],
   },
   {
     id: "8",
@@ -98,19 +140,44 @@ const mockListings = [
     image: "/images/listing-4.jpg",
     seller: { name: "ريم", rating: 4.9 },
     condition: "جديد",
+    conditionId: "new",
+    category: "shoes",
     size: "38",
+    colors: [
+      { name: "أحمر", hex: "#c8102e" },
+      { name: "أسود", hex: "#1a1a1a" },
+    ],
   },
 ]
+
+function buildCounts(items: typeof mockListings): FilterCounts {
+  const counts: FilterCounts = {
+    type: { all: items.length, rent: 0, sale: 0 },
+    categories: {},
+    conditions: {},
+    sizes: {},
+  }
+  for (const it of items) {
+    if (it.type === "rent") counts.type!.rent = (counts.type!.rent ?? 0) + 1
+    if (it.type === "sale") counts.type!.sale = (counts.type!.sale ?? 0) + 1
+    counts.categories![it.category] = (counts.categories![it.category] ?? 0) + 1
+    if (it.conditionId) counts.conditions![it.conditionId] = (counts.conditions![it.conditionId] ?? 0) + 1
+    if (it.size) counts.sizes![it.size] = (counts.sizes![it.size] ?? 0) + 1
+  }
+  return counts
+}
 
 export default function ListingsPage() {
   const [activeCategory, setActiveCategory] = useState("women")
   const [sortBy, setSortBy] = useState("newest")
   const [gridCols, setGridCols] = useState<2 | 4>(4)
 
+  const filterCounts = useMemo(() => buildCounts(mockListings), [])
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           {/* Hero Banner per category */}
@@ -123,7 +190,6 @@ export default function ListingsPage() {
             />
           ) : (
             <CategoryHero
-              // TODO: Replace with a real kids fashion image (e.g. /images/category-kids-hero.jpg)
               image="/images/category-kids.jpg"
               imageAlt="ملابس أطفال فاخرة"
               titleLine1="اشتري وأجّري"
@@ -159,7 +225,7 @@ export default function ListingsPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="lg:hidden">
-                <ListingsFilter />
+                <ListingsFilter counts={filterCounts} />
               </div>
               <p className="text-sm text-muted-foreground">
                 {mockListings.length} نتيجة
@@ -205,7 +271,7 @@ export default function ListingsPage() {
           {/* Content */}
           <div className="flex gap-8">
             {/* Desktop Sidebar Filter */}
-            <ListingsFilter />
+            <ListingsFilter counts={filterCounts} />
 
             {/* Products Grid */}
             <div className="flex-1">
