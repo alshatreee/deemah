@@ -37,8 +37,16 @@ const conditions = [
 
 const sizes = ["XS", "S", "M", "L", "XL", "XXL"]
 
+export interface FilterCounts {
+  type?: { all?: number; rent?: number; sale?: number }
+  categories?: Record<string, number>
+  conditions?: Record<string, number>
+  sizes?: Record<string, number>
+}
+
 interface ListingsFilterProps {
   onFilterChange?: (filters: FilterState) => void
+  counts?: FilterCounts
 }
 
 interface FilterState {
@@ -49,7 +57,14 @@ interface FilterState {
   priceRange: [number, number]
 }
 
-export function ListingsFilter({ onFilterChange }: ListingsFilterProps) {
+function CountChip({ n }: { n?: number }) {
+  if (typeof n !== "number") return null
+  return (
+    <span className="text-xs text-muted-foreground tabular-nums">({n})</span>
+  )
+}
+
+export function ListingsFilter({ onFilterChange, counts }: ListingsFilterProps) {
   const [filters, setFilters] = useState<FilterState>({
     type: "all",
     categories: [],
@@ -105,17 +120,23 @@ export function ListingsFilter({ onFilterChange }: ListingsFilterProps) {
         <Label className="text-base font-semibold mb-3 block">النوع</Label>
         <div className="flex gap-2">
           {[
-            { value: "all", label: "الكل" },
-            { value: "rent", label: "للإيجار" },
-            { value: "sale", label: "للبيع" },
+            { value: "all", label: "الكل", count: counts?.type?.all },
+            { value: "rent", label: "للإيجار", count: counts?.type?.rent },
+            { value: "sale", label: "للبيع", count: counts?.type?.sale },
           ].map((option) => (
             <Button
               key={option.value}
               variant={filters.type === option.value ? "default" : "outline"}
               size="sm"
               onClick={() => updateFilter("type", option.value as FilterState["type"])}
+              className="gap-1.5"
             >
-              {option.label}
+              <span>{option.label}</span>
+              {typeof option.count === "number" && (
+                <span className="text-xs opacity-80 tabular-nums">
+                  ({option.count})
+                </span>
+              )}
             </Button>
           ))}
         </div>
@@ -134,8 +155,9 @@ export function ListingsFilter({ onFilterChange }: ListingsFilterProps) {
                     checked={filters.categories.includes(category.id)}
                     onCheckedChange={() => toggleArrayFilter("categories", category.id)}
                   />
-                  <Label htmlFor={category.id} className="font-normal cursor-pointer">
-                    {category.label}
+                  <Label htmlFor={category.id} className="font-normal cursor-pointer flex-1 flex items-center justify-between">
+                    <span>{category.label}</span>
+                    <CountChip n={counts?.categories?.[category.id]} />
                   </Label>
                 </div>
               ))}
@@ -168,17 +190,25 @@ export function ListingsFilter({ onFilterChange }: ListingsFilterProps) {
           <AccordionTrigger className="text-base font-semibold">المقاس</AccordionTrigger>
           <AccordionContent>
             <div className="flex flex-wrap gap-2 pt-2">
-              {sizes.map((size) => (
-                <Button
-                  key={size}
-                  variant={filters.sizes.includes(size) ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleArrayFilter("sizes", size)}
-                  className="min-w-[48px]"
-                >
-                  {size}
-                </Button>
-              ))}
+              {sizes.map((size) => {
+                const c = counts?.sizes?.[size]
+                return (
+                  <Button
+                    key={size}
+                    variant={filters.sizes.includes(size) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayFilter("sizes", size)}
+                    className="min-w-[48px] gap-1"
+                  >
+                    <span>{size}</span>
+                    {typeof c === "number" && (
+                      <span className="text-[10px] opacity-70 tabular-nums">
+                        ({c})
+                      </span>
+                    )}
+                  </Button>
+                )
+              })}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -195,8 +225,9 @@ export function ListingsFilter({ onFilterChange }: ListingsFilterProps) {
                     checked={filters.conditions.includes(condition.id)}
                     onCheckedChange={() => toggleArrayFilter("conditions", condition.id)}
                   />
-                  <Label htmlFor={condition.id} className="font-normal cursor-pointer">
-                    {condition.label}
+                  <Label htmlFor={condition.id} className="font-normal cursor-pointer flex-1 flex items-center justify-between">
+                    <span>{condition.label}</span>
+                    <CountChip n={counts?.conditions?.[condition.id]} />
                   </Label>
                 </div>
               ))}
