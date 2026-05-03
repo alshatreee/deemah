@@ -1,8 +1,16 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Star } from "lucide-react"
+
+export interface ColorOption {
+  name: string
+  hex: string
+}
 
 export interface ProductCardProps {
   id: string
@@ -18,6 +26,7 @@ export interface ProductCardProps {
   size?: string
   isFeatured?: boolean
   isSaved?: boolean
+  colors?: ColorOption[]
 }
 
 export function ProductCard({
@@ -31,7 +40,12 @@ export function ProductCard({
   size,
   isFeatured,
   isSaved,
+  colors,
 }: ProductCardProps) {
+  const [activeColor, setActiveColor] = useState<string | null>(
+    colors && colors.length > 0 ? colors[0].name : null
+  )
+
   return (
     <Link href={`/listings/${id}`}>
       <Card className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
@@ -42,13 +56,13 @@ export function ProductCard({
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          
+
           {/* Badges */}
           <div className="absolute top-3 right-3 flex flex-col gap-2">
-            <Badge 
+            <Badge
               className={`${
-                type === "rent" 
-                  ? "bg-olive text-olive-foreground" 
+                type === "rent"
+                  ? "bg-olive text-olive-foreground"
                   : "bg-primary text-primary-foreground"
               }`}
             >
@@ -60,12 +74,12 @@ export function ProductCard({
               </Badge>
             )}
           </div>
-          
+
           {/* Save Button */}
-          <button 
+          <button
             className={`absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-              isSaved 
-                ? "bg-primary text-primary-foreground" 
+              isSaved
+                ? "bg-primary text-primary-foreground"
                 : "bg-white/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 hover:bg-white text-foreground"
             }`}
             aria-label={isSaved ? "إزالة من المحفوظات" : "حفظ"}
@@ -85,12 +99,41 @@ export function ProductCard({
             </div>
           </div>
         </div>
-        
+
         <CardContent className="p-4">
           <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
             {title}
           </h3>
-          
+
+          {/* Color Swatches */}
+          {colors && colors.length > 0 && (
+            <div className="mt-2 flex items-center gap-1.5" aria-label="الألوان المتوفرة">
+              {colors.slice(0, 5).map((c) => (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setActiveColor(c.name)
+                  }}
+                  title={c.name}
+                  aria-label={`اختيار اللون ${c.name}`}
+                  className={`w-4 h-4 rounded-full border transition-all ${
+                    activeColor === c.name
+                      ? "ring-2 ring-primary ring-offset-1 border-white"
+                      : "border-border hover:scale-110"
+                  }`}
+                  style={{ backgroundColor: c.hex }}
+                />
+              ))}
+              {colors.length > 5 && (
+                <span className="text-xs text-muted-foreground mr-1">
+                  +{colors.length - 5}
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="mt-2 flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
               {seller.name}
@@ -102,7 +145,7 @@ export function ProductCard({
               </span>
             </div>
           </div>
-          
+
           <p className="mt-2 text-lg font-bold text-primary">
             {price} د.ك
             {type === "rent" && (
