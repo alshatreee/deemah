@@ -81,8 +81,8 @@ export default function ListingDetailPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
-    to: Date | undefined
-  }>({
+    to?: Date | undefined
+    }>({
     from: undefined,
     to: undefined,
   })
