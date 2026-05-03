@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { ProductCard } from "@/components/listings/product-card"
 import { ListingsFilter } from "@/components/listings/listings-filter"
+import { CategoryHero } from "@/components/listings/category-hero"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -112,6 +113,24 @@ export default function ListingsPage() {
       
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
+          {/* Hero Banner per category */}
+          {activeCategory === "women" ? (
+            <CategoryHero
+              image="/images/hero-fashion.jpg"
+              imageAlt="فستان فاخر"
+              titleLine1="اشتري وأجّري"
+              titleLine2="أزياء فاخرة"
+            />
+          ) : (
+            <CategoryHero
+              // TODO: Replace with a real kids fashion image (e.g. /images/category-kids-hero.jpg)
+              image="/images/category-kids.jpg"
+              imageAlt="ملابس أطفال فاخرة"
+              titleLine1="اشتري وأجّري"
+              titleLine2="أزياء أطفال فاخرة"
+            />
+          )}
+
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
