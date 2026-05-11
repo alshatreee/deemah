@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import type { ConversationSummary, Message, UserProfile } from '@/lib/types'
+import { z } from 'zod'
+
+const uuidSchema = z.string().uuid()
 
 const PARTNER_SELECT = 'id, username, full_name, avatar_url'
 
@@ -70,11 +73,13 @@ export async function fetchThread(
   partner: Pick<UserProfile, 'id' | 'username' | 'full_name' | 'avatar_url'> | null
 }> {
   const supabase = await createClient()
+  const safePartnerId = uuidSchema.parse(partnerId)
+  const safeUserId = uuidSchema.parse(userId)
   const { data: msgs, error } = await supabase
     .from('messages')
     .select('*')
     .or(
-      `and(sender_id.eq.${userId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${userId})`,
+      `and(sender_id.eq.${safeUserId},receiver_id.eq.${safePartnerId}),and(sender_id.eq.${safePartnerId},receiver_id.eq.${safeUserId})`,
     )
     .order('created_at', { ascending: true })
     .limit(500)
