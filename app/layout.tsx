@@ -9,10 +9,24 @@ const liftaswash = localFont({
   display: 'swap',
 })
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://deemah.com' // TODO: confirm production domain
+const SITE_NAME = 'ديمة'
+const SITE_DESCRIPTION =
+  'منصة الأزياء الفاخرة في الكويت — اكتشفي وبيعي أرقى قطع الملابس بأسلوب سهل وموثوق'
+
 export const metadata: Metadata = {
-  title: 'ديمة | منصة الأزياء الفاخرة في الكويت',
-  description: 'منصة الأزياء الفاخرة في الكويت - بيع وتأجير الملابس الراقية بأسلوب سهل وموثوق',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'ديمة | منصة الأزياء الفاخرة في الكويت',
+    template: '%s | ديمة',
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   generator: 'v0.app',
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: [
       { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
@@ -20,6 +34,38 @@ export const metadata: Metadata = {
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ar_KW',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: 'ديمة | منصة الأزياء الفاخرة في الكويت',
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'ديمة - منصة الأزياء الفاخرة في الكويت',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ديمة | منصة الأزياء الفاخرة في الكويت',
+    description: SITE_DESCRIPTION,
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 }
 

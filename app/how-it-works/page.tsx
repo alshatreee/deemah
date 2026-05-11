@@ -19,7 +19,7 @@ const steps = [
   {
     icon: Wallet,
     title: "اربحي بسهولة",
-    description: "استلمي أرباحك بعد إتمام البيع أو الإيجار بنجاح.",
+    description: "استلمي أرباحك بعد إتمام البيع بنجاح.",
   },
 ]
 
@@ -32,7 +32,7 @@ export default function HowItWorksPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-4">كيف تعمل ديمة</h1>
             <p className="text-muted-foreground text-lg">
-              ثلاث خطوات بسيطة لبدء البيع أو التأجير على ديمة
+              ثلاث خطوات بسيطة لبدء البيع على ديمة
             </p>
           </div>
 

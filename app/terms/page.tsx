@@ -27,7 +27,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-xl font-bold mb-2">٢. استخدام المنصة</h2>
               <p className="text-muted-foreground">
-                ديمة منصة لبيع وتأجير قطع الأزياء بين المستخدمات. يجب أن تكون القطع المعروضة صحيحة وموصوفة بدقة.
+                ديمة منصة لبيع قطع الأزياء بين المستخدمات. يجب أن تكون القطع المعروضة صحيحة وموصوفة بدقة.
               </p>
             </section>
 

@@ -2,21 +2,15 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Star } from "lucide-react"
-
-export interface ColorOption {
-  name: string
-  hex: string
-}
 
 export interface ProductCardProps {
   id: string
   title: string
   price: number
-  type: "rent" | "sale"
+  type: "sale"
   image: string
   seller: {
     name: string
@@ -26,26 +20,19 @@ export interface ProductCardProps {
   size?: string
   isFeatured?: boolean
   isSaved?: boolean
-  colors?: ColorOption[]
 }
 
 export function ProductCard({
   id,
   title,
   price,
-  type,
   image,
   seller,
   condition,
   size,
   isFeatured,
   isSaved,
-  colors,
 }: ProductCardProps) {
-  const [activeColor, setActiveColor] = useState<string | null>(
-    colors && colors.length > 0 ? colors[0].name : null
-  )
-
   return (
     <Link href={`/listings/${id}`}>
       <Card className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300">
@@ -59,14 +46,8 @@ export function ProductCard({
 
           {/* Badges */}
           <div className="absolute top-3 right-3 flex flex-col gap-2">
-            <Badge
-              className={`${
-                type === "rent"
-                  ? "bg-olive text-olive-foreground"
-                  : "bg-primary text-primary-foreground"
-              }`}
-            >
-              {type === "rent" ? "للإيجار" : "للبيع"}
+            <Badge className="bg-primary text-primary-foreground">
+              للبيع
             </Badge>
             {isFeatured && (
               <Badge variant="secondary" className="bg-accent text-accent-foreground">
@@ -105,35 +86,6 @@ export function ProductCard({
             {title}
           </h3>
 
-          {/* Color Swatches */}
-          {colors && colors.length > 0 && (
-            <div className="mt-2 flex items-center gap-1.5" aria-label="الألوان المتوفرة">
-              {colors.slice(0, 5).map((c) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setActiveColor(c.name)
-                  }}
-                  title={c.name}
-                  aria-label={`اختيار اللون ${c.name}`}
-                  className={`w-4 h-4 rounded-full border transition-all ${
-                    activeColor === c.name
-                      ? "ring-2 ring-primary ring-offset-1 border-white"
-                      : "border-border hover:scale-110"
-                  }`}
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
-              {colors.length > 5 && (
-                <span className="text-xs text-muted-foreground mr-1">
-                  +{colors.length - 5}
-                </span>
-              )}
-            </div>
-          )}
-
           <div className="mt-2 flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
               {seller.name}
@@ -148,9 +100,6 @@ export function ProductCard({
 
           <p className="mt-2 text-lg font-bold text-primary">
             {price} د.ك
-            {type === "rent" && (
-              <span className="text-sm font-normal text-muted-foreground">/يوم</span>
-            )}
           </p>
         </CardContent>
       </Card>

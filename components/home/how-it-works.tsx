@@ -30,7 +30,7 @@ export function HowItWorks() {
             كيف تعمل المنصة؟
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            ثلاث خطوات بسيطة لبدء بيع أو تأجير أزيائك الفاخرة
+            ثلاث خطوات بسيطة لبدء بيع أزيائك الفاخرة
           </p>
         </div>
 

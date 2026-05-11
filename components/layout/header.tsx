@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Menu, X, MessageCircle, LayoutDashboard, Search, Plus, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { UserNav } from "@/components/layout/user-nav"
 
 const navLinks = [
   { href: "/listings", label: "تصفحي" },
@@ -39,14 +40,7 @@ export function Header() {
         </nav>
 
         {/* Auth Buttons - Desktop */}
-        <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">دخول</Link>
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/register">تسجيل</Link>
-          </Button>
-        </div>
+        <UserNav variant="desktop" />
 
         {/* Mobile Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -74,14 +68,7 @@ export function Header() {
                   </Link>
                 ))}
               </nav>
-              <div className="flex flex-col gap-3 pt-4 border-t">
-                <Button variant="outline" asChild>
-                  <Link href="/login" onClick={() => setIsOpen(false)}>دخول</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/register" onClick={() => setIsOpen(false)}>تسجيل</Link>
-                </Button>
-              </div>
+              <UserNav variant="mobile" onNavigate={() => setIsOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>

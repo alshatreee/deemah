@@ -1,0 +1,66 @@
+
+> my-project@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\xman9\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\xman9\OneDrive\Desktop\Desktop\Desktop\deeemah\dima_final\pnpm-lock.yaml
+
+▲ Next.js 16.2.4 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 15.9s
+  Running TypeScript ...
+  Finished TypeScript in 23.6s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/12) ...
+  Generating static pages using 11 workers (3/12) 
+  Generating static pages using 11 workers (6/12) 
+  Generating static pages using 11 workers (9/12) 
+✓ Generating static pages using 11 workers (12/12) in 1201ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/callback
+├ ƒ /api/auth/signout
+├ ƒ /api/payments/dev-simulate
+├ ƒ /api/payments/tap/create
+├ ƒ /api/payments/tap/return
+├ ƒ /api/payments/tap/webhook
+├ ƒ /bookings
+├ ƒ /bookings/[id]
+├ ƒ /checkout/[listingId]
+├ ƒ /checkout/booking/[id]
+├ ○ /contact
+├ ƒ /dashboard
+├ ƒ /dashboard/earnings
+├ ○ /faq
+├ ○ /how-it-works
+├ ƒ /listings
+├ ƒ /listings/[id]
+├ ƒ /listings/[id]/edit
+├ ƒ /listings/new
+├ ○ /login
+├ ƒ /messages
+├ ƒ /messages/[id]
+├ ƒ /orders
+├ ƒ /orders/[id]
+├ ƒ /orders/[id]/pay
+├ ƒ /profile
+├ ƒ /profile/[username]
+├ ○ /register
+└ ○ /terms
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

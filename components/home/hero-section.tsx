@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Sparkles } from "lucide-react"
 
 export function HeroSection() {
   return (
@@ -10,11 +10,20 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-right order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Sparkles className="h-4 w-4" />
+              <span>منصة الأزياء الفاخرة في الكويت</span>
+            </div>
+            
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight text-balance">
-              اشتري وأجّري
+              اشتري وبيعي
               <br />
               <span className="text-primary">أزياء فاخرة</span>
             </h1>
+
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
+              بيعي ملابسك مع كويتيات. منصة موثوقة وآمنة لتداول الأزياء الراقية.
+            </p>
             
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button size="lg" asChild className="text-base">

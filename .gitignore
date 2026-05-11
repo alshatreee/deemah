@@ -14,3 +14,5 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+# Local trash for files the FUSE mount won't let us unlink
+.deleted_bookings/
