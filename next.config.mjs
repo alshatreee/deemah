@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs'
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -29,4 +31,12 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  org: 'kk-uh',
+  project: 'deemah',
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  tunnelRoute: '/monitoring',
+})
