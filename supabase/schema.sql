@@ -61,7 +61,7 @@ create table if not exists public.listings (
   size text,
   color text,
   condition text check (condition in ('new','like_new','good','fair')),
-  price_buy numeric(10,3),
+  price_buy numeric(10,3) not null check (price_buy > 0),
   -- Kids filters (migration 004): only allowed when category = 'kids'
   gender text check (gender in ('boys','girls','unisex')),
   age_range text check (age_range in ('0-2','3-5','6-9','10-12')),
