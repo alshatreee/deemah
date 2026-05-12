@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 
 const profileSchema = z.object({
-  full_name: z.string().min(2, 'الاسم قصير').max(80),
+  full_name: z.string().min(2, 'الاسم قصير').max(100),
   username: z
     .string()
     .min(3, 'اسم المستخدمة قصير')

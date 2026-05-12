@@ -3,8 +3,8 @@ import { createClient as createBrowserSupabase } from '@/lib/supabase/client'
 const LISTINGS_BUCKET = 'listings'
 const AVATARS_BUCKET = 'avatars'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_FILE_BYTES = 8 * 1024 * 1024 // 8 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB
 
 export interface UploadResult {
   path: string
@@ -12,11 +12,11 @@ export interface UploadResult {
 }
 
 function assertImage(file: File): void {
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new Error('نوع الصورة غير مدعوم — استخدمي JPG/PNG/WEBP')
+  if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
+    throw new Error('نوع الملف غير مدعوم. JPG, PNG, WebP فقط')
   }
   if (file.size > MAX_FILE_BYTES) {
-    throw new Error('حجم الصورة كبير جداً (الحد ٨MB)')
+    throw new Error('حجم الملف يجب أن يكون أقل من 5 ميجابايت')
   }
 }
 

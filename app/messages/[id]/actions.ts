@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 
 const sendSchema = z.object({
   receiver_id: z.string().uuid('مستلم غير صالح'),
-  body: z.string().min(1, 'الرسالة فارغة').max(2000),
+  body: z.string().trim().min(1, 'الرسالة فارغة').max(2000),
   listing_id: z.string().uuid().optional().or(z.literal('')),
 })
 

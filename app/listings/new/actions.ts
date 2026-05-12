@@ -14,16 +14,16 @@ const AGE_RANGES = ['0-2', '3-5', '6-9', '10-12'] as const
 
 const listingSchema = z
   .object({
-    title: z.string().min(3, 'العنوان قصير').max(120),
-    description: z.string().max(2000).optional().or(z.literal('')),
+    title: z.string().min(3, 'العنوان قصير').max(200),
+    description: z.string().max(5000).optional().or(z.literal('')),
     category: z.enum(CATEGORIES, { message: 'صنّفي القطعة' }),
-    brand: z.string().max(80).optional().or(z.literal('')),
-    size: z.string().max(20).optional().or(z.literal('')),
-    color: z.string().max(40).optional().or(z.literal('')),
+    brand: z.string().max(100).optional().or(z.literal('')),
+    size: z.string().max(50).optional().or(z.literal('')),
+    color: z.string().max(50).optional().or(z.literal('')),
     condition: z.enum(CONDITIONS).optional(),
     gender: z.enum(GENDERS).optional(),
     age_range: z.enum(AGE_RANGES).optional(),
-    price_buy: z.number().positive('أدخلي سعر البيع'),
+    price_buy: z.number().positive('أدخلي سعر البيع').max(99999.999),
     images: z.array(z.string()).default([]),
   })
   .refine((d) => d.category !== 'kids' || !!d.gender, {
