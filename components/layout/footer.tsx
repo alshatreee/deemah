@@ -29,7 +29,7 @@ export function Footer() {
               ديمة
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              منصة الأزياء الفاخرة في الكويت. بيعي وأجّري ملابسك الراقية بكل سهولة وثقة.
+              منصة الأزياء الفاخرة في الكويت. بيعي ملابسك الراقية بكل سهولة وثقة.
             </p>
           </div>
 

@@ -61,7 +61,7 @@ export function OfferCountdown() {
                 <span>عرض محدود</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                خصم يصل إلى 30% على الإيجار
+                خصم يصل إلى 30% على البيع
               </h2>
               <p className="mt-2 text-sm md:text-base text-muted-foreground">
                 احجزي إطلالة المناسبة قبل انتهاء العرض
