@@ -7,6 +7,7 @@ import {
   verifyWebhookSignature,
   type TapChargeResponse,
 } from '@/lib/payments/tap'
+import { webhookLimiter } from '@/lib/ratelimit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -90,6 +91,12 @@ async function applyPaid(targetId: string, chargeId: string, charge: TapChargeRe
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const { success } = await webhookLimiter.limit(`ip:${ip}`)
+  if (!success) {
+    return NextResponse.json({ error: 'rate limited' }, { status: 429 })
+  }
+
   const rawBody = await req.text()
   let payload: TapWebhookPayload
   try {

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { listingCreateLimiter } from '@/lib/ratelimit'
 
 const CATEGORIES = ['women', 'men', 'kids', 'accessories', 'shoes', 'bags'] as const
 const CONDITIONS = ['new', 'like_new', 'good', 'fair'] as const
@@ -74,6 +75,11 @@ export async function createListingAction(formData: FormData): Promise<ActionRes
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { error: 'الرجاء تسجيل الدخول أولاً' }
+
+  const { success } = await listingCreateLimiter.limit(`user:${user.id}`)
+  if (!success) {
+    return { error: 'لا يمكنك إضافة أكثر من 3 منتجات في الساعة.' }
+  }
 
   const insertPayload = {
     owner_id: user.id,

@@ -5,6 +5,7 @@ import 'server-only'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { messageLimiter } from '@/lib/ratelimit'
 
 const sendSchema = z.object({
   receiver_id: z.string().uuid('مستلم غير صالح'),
@@ -32,6 +33,11 @@ export async function sendMessageAction(formData: FormData): Promise<ActionResul
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { error: 'الرجاء تسجيل الدخول' }
+
+  const { success } = await messageLimiter.limit(`user:${user.id}`)
+  if (!success) {
+    return { error: 'محاولات كثيرة جداً. حاولي بعد دقيقة.' }
+  }
 
   const { error } = await supabase.from('messages').insert({
     sender_id: user.id,

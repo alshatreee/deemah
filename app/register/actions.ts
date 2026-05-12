@@ -3,9 +3,11 @@
 import 'server-only'
 
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { authLimiter } from '@/lib/ratelimit'
 
 const registerSchema = z.object({
   full_name: z.string().min(2, 'الاسم قصير'),
@@ -62,6 +64,13 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'بيانات غير صالحة' }
+  }
+
+  const hdrs = await headers()
+  const ip = hdrs.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const { success } = await authLimiter.limit(`ip:${ip}:${parsed.data.email}`)
+  if (!success) {
+    return { error: 'محاولات كثيرة جداً. حاولي بعد دقيقة.' }
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
