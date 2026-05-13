@@ -329,3 +329,47 @@ begin
   begin execute 'alter publication supabase_realtime add table public.users'; exception when others then null; end;
   begin execute 'alter publication supabase_realtime add table public.orders'; exception when others then null; end;
 end$$;
+
+-- ============================================
+-- STORAGE BUCKET RLS (listings + avatars)
+-- Mirrors migration 010_storage_rls.sql.
+-- ============================================
+insert into storage.buckets (id, name, public)
+values ('listings', 'listings', true)
+on conflict (id) do update set public = true;
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Storage: public read listings" on storage.objects;
+create policy "Storage: public read listings"
+  on storage.objects for select
+  using (bucket_id in ('listings', 'avatars'));
+
+drop policy if exists "Storage: authenticated upload to own folder" on storage.objects;
+create policy "Storage: authenticated upload to own folder"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id in ('listings', 'avatars')
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Storage: owner update" on storage.objects;
+create policy "Storage: owner update"
+  on storage.objects for update
+  to authenticated
+  using (
+    bucket_id in ('listings', 'avatars')
+    and owner = auth.uid()
+  );
+
+drop policy if exists "Storage: owner delete" on storage.objects;
+create policy "Storage: owner delete"
+  on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id in ('listings', 'avatars')
+    and owner = auth.uid()
+  );

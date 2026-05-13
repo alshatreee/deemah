@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
+  "functions": {
+    "app/api/payments/tap/webhook/route.ts": {
+      "maxDuration": 30
+    },
+    "app/sitemap.ts": {
+      "maxDuration": 30
+    }
+  }
+}

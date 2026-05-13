@@ -28,6 +28,13 @@ export async function sendMessageAction(formData: FormData): Promise<ActionResul
     return { error: parsed.error.issues[0]?.message ?? 'بيانات غير صالحة' }
   }
 
+  // NOTE: Intentionally NOT calling moderateText() on message bodies.
+  // Buyers and sellers legitimately need to exchange contact info (WhatsApp,
+  // phone, address) to coordinate shipping and meetups. Blocking that would
+  // break the core marketplace flow. We accept the bypass risk here.
+  // Listing titles/descriptions ARE moderated (see app/listings/new/actions.ts)
+  // because that's the public-discovery surface where contact-exfil is abuse.
+
   const supabase = await createClient()
   const {
     data: { user },

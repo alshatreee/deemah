@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { listingCreateLimiter } from '@/lib/ratelimit'
+import { moderateText } from '@/lib/moderation/text-check'
 
 const CATEGORIES = ['women', 'men', 'kids', 'accessories', 'shoes', 'bags'] as const
 const CONDITIONS = ['new', 'like_new', 'good', 'fair'] as const
@@ -68,6 +69,16 @@ export async function createListingAction(formData: FormData): Promise<ActionRes
   const parsed = listingSchema.safeParse(fromForm(formData))
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'بيانات غير صالحة' }
+  }
+
+  // Text moderation: block URLs, emails, phone numbers in listing copy
+  const titleCheck = moderateText(parsed.data.title)
+  if (!titleCheck.safe) {
+    return { error: titleCheck.reason || 'العنوان غير مقبول' }
+  }
+  const descCheck = moderateText(parsed.data.description ?? '', { allowContactInfo: false })
+  if (!descCheck.safe && parsed.data.description) {
+    return { error: descCheck.reason || 'الوصف غير مقبول' }
   }
 
   const supabase = await createClient()
