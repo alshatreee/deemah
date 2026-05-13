@@ -10,6 +10,7 @@ import { fetchOrderById } from '@/lib/orders'
 import { createClient } from '@/lib/supabase/server'
 import { listingPublicUrl } from '@/lib/storage'
 import { OrderActions } from './actions-client'
+import { DisputeForm } from './dispute-form'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -96,6 +97,10 @@ export default async function OrderDetailPage({ params }: PageProps) {
           isBuyer={isBuyer}
           isSeller={isSeller}
         />
+
+        {isBuyer && ['paid', 'shipped', 'delivered'].includes(order.status) && (
+          <DisputeForm orderId={order.id} />
+        )}
 
         <p className="text-xs text-muted-foreground">
           أُنشئ في {new Date(order.created_at).toLocaleString('ar-KW')}

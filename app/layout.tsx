@@ -10,6 +10,7 @@ const liftaswash = localFont({
   src: '../public/fonts/Liftaswashfixed-Regular.otf',
   variable: '--font-liftaswash',
   display: 'swap',
+  preload: true,
 })
 
 const SITE_URL =

@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { sendOrderShippedEmail } from '@/lib/email/resend'
 
 const shippingSchema = z.object({
   full_name: z.string().min(2, 'الاسم قصير'),
@@ -113,6 +115,37 @@ export async function markShippedAction(orderId: string): Promise<ActionResult> 
     console.error('[markShipped] error:', error.message)
     return { error: 'تعذّر تحديث الطلب' }
   }
+
+  // Fire-and-forget shipped notification to buyer
+  try {
+    const { data: orderDetails } = await supabase
+      .from('orders')
+      .select('amount, buyer_id, listing:listings!listing_id(title)')
+      .eq('id', orderId)
+      .single()
+    if (orderDetails?.buyer_id) {
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } },
+      )
+      const { data: buyerAuth } = await admin.auth.admin.getUserById(orderDetails.buyer_id)
+      const buyerEmail = buyerAuth?.user?.email
+      const listing = orderDetails.listing as unknown as { title?: string } | { title?: string }[] | null
+      const listingTitle = Array.isArray(listing) ? listing[0]?.title : listing?.title
+      if (buyerEmail) {
+        sendOrderShippedEmail({
+          to: buyerEmail,
+          orderId,
+          amount: Number(orderDetails.amount),
+          listingTitle: listingTitle || 'منتج',
+        }).catch(() => {})
+      }
+    }
+  } catch (err) {
+    console.error('[markShipped] email lookup failed:', err)
+  }
+
   revalidatePath(`/orders/${orderId}`)
   revalidatePath('/orders')
   return {}

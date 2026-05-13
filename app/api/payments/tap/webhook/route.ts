@@ -8,6 +8,7 @@ import {
   type TapChargeResponse,
 } from '@/lib/payments/tap'
 import { webhookLimiter } from '@/lib/ratelimit'
+import { sendOrderPaidEmail } from '@/lib/email/resend'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -87,6 +88,32 @@ async function applyPaid(targetId: string, chargeId: string, charge: TapChargeRe
   if (ownerId) {
     await insertEarningOnce(ownerId, expectedAmount, targetId, `بيع طلب ${targetId}`)
   }
+
+  // Fire-and-forget order-paid email to buyer (must not block webhook idempotency)
+  try {
+    const { data: orderDetails } = await supabase
+      .from('orders')
+      .select('amount, buyer_id, listing:listings!listing_id(title)')
+      .eq('id', targetId)
+      .single()
+    if (orderDetails?.buyer_id) {
+      const { data: buyerAuth } = await supabase.auth.admin.getUserById(orderDetails.buyer_id)
+      const buyerEmail = buyerAuth?.user?.email
+      const listing = orderDetails.listing as unknown as { title?: string } | { title?: string }[] | null
+      const listingTitle = Array.isArray(listing) ? listing[0]?.title : listing?.title
+      if (buyerEmail) {
+        sendOrderPaidEmail({
+          to: buyerEmail,
+          orderId: targetId,
+          amount: Number(orderDetails.amount),
+          listingTitle: listingTitle || 'منتج',
+        }).catch(() => {})
+      }
+    }
+  } catch (err) {
+    console.error('[webhook applyPaid] email lookup failed:', err)
+  }
+
   return { ok: true }
 }
 

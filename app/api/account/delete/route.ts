@@ -21,6 +21,15 @@ export async function POST() {
     { auth: { autoRefreshToken: false, persistSession: false } },
   )
 
+  // Cleanup user data first (archives listings, deletes public.users row → cascades)
+  const { error: cleanupError } = await admin.rpc('cleanup_user_data', { p_user_id: user.id })
+  if (cleanupError) {
+    return NextResponse.json(
+      { error: 'تعذر تنظيف البيانات: ' + cleanupError.message },
+      { status: 500 },
+    )
+  }
+
   const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
   if (deleteError) {
     return NextResponse.json(
