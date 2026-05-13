@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/server'
 import { listingPublicUrl } from '@/lib/storage'
 import { OrderActions } from './actions-client'
 import { DisputeForm } from './dispute-form'
+import { ReviewForm } from './review-form'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -51,6 +52,18 @@ export default async function OrderDetailPage({ params }: PageProps) {
   const img = order.listing?.images?.[0]
     ? listingPublicUrl(order.listing.images[0])
     : '/images/listing-1.jpg'
+
+  // Gate review form: buyer + delivered + no existing review for this listing
+  let canReview = false
+  if (isBuyer && order.status === 'delivered' && ownerId) {
+    const { data: existingReview } = await supabase
+      .from('reviews')
+      .select('id')
+      .eq('author_id', me.id)
+      .eq('listing_id', order.listing_id)
+      .maybeSingle()
+    canReview = !existingReview
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -100,6 +113,14 @@ export default async function OrderDetailPage({ params }: PageProps) {
 
         {isBuyer && ['paid', 'shipped', 'delivered'].includes(order.status) && (
           <DisputeForm orderId={order.id} />
+        )}
+
+        {canReview && ownerId && (
+          <ReviewForm
+            orderId={order.id}
+            listingId={order.listing_id}
+            sellerId={ownerId}
+          />
         )}
 
         <p className="text-xs text-muted-foreground">

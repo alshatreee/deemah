@@ -12,6 +12,7 @@ import { fetchUserListings } from '@/lib/listings'
 import { listingPublicUrl } from '@/lib/storage'
 import { getUser } from '@/lib/auth'
 import type { UserProfile } from '@/lib/types'
+import { ReviewList } from '@/components/reviews/review-list'
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -137,6 +138,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
                 })}
             </div>
           )}
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-3">التقييمات</h2>
+          <ReviewList sellerId={profile.id} />
         </section>
       </main>
       <Footer />
