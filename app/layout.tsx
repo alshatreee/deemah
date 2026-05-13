@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import { Analytics } from '@vercel/analytics/next'
+import { CookieBanner } from '@/components/layout/cookie-banner'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import { MicrosoftClarity } from '@/components/analytics/clarity'
 import './globals.css'
 
 const liftaswash = localFont({
@@ -24,6 +27,12 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   generator: 'v0.app',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'ديمة',
+  },
   alternates: {
     canonical: '/',
   },
@@ -70,7 +79,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#c4956a',
+  themeColor: '#b8860b',
   width: 'device-width',
   initialScale: 1,
 }
@@ -82,6 +91,9 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className="bg-background">
       <body className={`${liftaswash.variable} font-sans antialiased`}>
         {children}
+        <CookieBanner />
+        <GoogleAnalytics />
+        <MicrosoftClarity />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

@@ -1,0 +1,27 @@
+{
+  "name": "ديمة | منصة الأزياء الفاخرة",
+  "short_name": "ديمة",
+  "description": "منصة الأزياء الفاخرة في الكويت — بيعي واشتري ملابسك الراقية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#b8860b",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "orientation": "portrait"
+}
