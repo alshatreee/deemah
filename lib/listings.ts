@@ -44,7 +44,7 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Paged
   if (filters.size) q = q.eq('size', filters.size)
   if (filters.color) q = q.ilike('color', `%${filters.color}%`)
   if (filters.brand) q = q.ilike('brand', `%${filters.brand}%`)
-  if (filters.search) q = q.ilike('title', `%${filters.search}%`)
+  if (filters.search) q = q.ilike('searchable_text', `%${filters.search}%`)
   if (filters.gender) q = q.eq('gender', filters.gender)
   if (filters.age_range) q = q.eq('age_range', filters.age_range)
   if (typeof filters.minPrice === 'number') q = q.gte('price_buy', filters.minPrice)

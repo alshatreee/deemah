@@ -91,6 +91,23 @@ create index if not exists idx_listings_category on public.listings(category);
 create index if not exists idx_listings_status on public.listings(status);
 create index if not exists idx_listings_gender on public.listings(gender);
 create index if not exists idx_listings_age_range on public.listings(age_range);
+-- Trigram full-text search indexes (migration 009)
+create extension if not exists pg_trgm;
+create index if not exists idx_listings_title_trgm
+  on public.listings using gin (title gin_trgm_ops);
+create index if not exists idx_listings_description_trgm
+  on public.listings using gin (description gin_trgm_ops);
+create index if not exists idx_listings_brand_trgm
+  on public.listings using gin (brand gin_trgm_ops);
+alter table public.listings add column if not exists searchable_text text
+  generated always as (
+    coalesce(title, '') || ' ' ||
+    coalesce(description, '') || ' ' ||
+    coalesce(brand, '')
+  ) stored;
+create index if not exists idx_listings_searchable_text_trgm
+  on public.listings using gin (searchable_text gin_trgm_ops);
+
 
 -- ============================================
 -- ORDERS (sales)

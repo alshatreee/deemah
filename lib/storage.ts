@@ -1,4 +1,5 @@
 import { createClient as createBrowserSupabase } from '@/lib/supabase/client'
+import { moderateImage } from '@/lib/moderation/image-check'
 
 const LISTINGS_BUCKET = 'listings'
 const AVATARS_BUCKET = 'avatars'
@@ -64,6 +65,10 @@ async function uploadToBucket(
   file: File,
 ): Promise<UploadResult> {
   assertImage(file)
+  const moderation = await moderateImage(file)
+  if (!moderation.safe) {
+    throw new Error(moderation.reason || 'فشل التحقق من الصورة')
+  }
   const supabase = createBrowserSupabase()
   const blob = await compressImage(file)
   const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase()
