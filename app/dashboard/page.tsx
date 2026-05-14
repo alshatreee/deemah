@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, MessageSquare, Wallet, Eye, Pencil, Package } from 'lucide-react'
+import { Plus, MessageSquare, Wallet, Eye, Pencil, Package, Heart, TrendingUp } from 'lucide-react'
 import { requireUser, getProfile } from '@/lib/auth'
 import { fetchUserListings } from '@/lib/listings'
 import { fetchConversations } from '@/lib/messages'
@@ -40,13 +40,37 @@ async function fetchEarnings(userId: string): Promise<EarningsSummary> {
   return { total, pending }
 }
 
+interface TopListing {
+  id: string
+  title: string
+  views_count: number | null
+  favorites_count: number | null
+  status: string
+}
+
+async function fetchTopListings(userId: string): Promise<TopListing[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('listings')
+    .select('id, title, views_count, favorites_count, status')
+    .eq('owner_id', userId)
+    .order('views_count', { ascending: false })
+    .limit(5)
+  if (error) {
+    console.error('[fetchTopListings] error:', error.message)
+    return []
+  }
+  return (data ?? []) as TopListing[]
+}
+
 export default async function DashboardPage() {
   const user = await requireUser()
   const profile = await getProfile()
-  const [listings, conversations, earnings] = await Promise.all([
+  const [listings, conversations, earnings, topListings] = await Promise.all([
     fetchUserListings(user.id),
     fetchConversations(user.id),
     fetchEarnings(user.id),
+    fetchTopListings(user.id),
   ])
 
   const unreadTotal = conversations.reduce((s, c) => s + c.unread_count, 0)
@@ -118,6 +142,46 @@ export default async function DashboardPage() {
             </Button>
           </Link>
         </div>
+
+        {topListings.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                الأكثر مشاهدةً
+              </h2>
+            </div>
+            <Card>
+              <CardContent className="p-0">
+                <ul className="divide-y">
+                  {topListings.map((l) => (
+                    <li key={l.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <Link
+                        href={`/listings/${l.id}`}
+                        className="flex-1 min-w-0 font-medium text-sm truncate hover:text-primary transition-colors"
+                      >
+                        {l.title}
+                      </Link>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3.5 w-3.5" />
+                          {l.views_count ?? 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3.5 w-3.5" />
+                          {l.favorites_count ?? 0}
+                        </span>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {l.status}
+                        </Badge>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         <section>
           <div className="flex items-center justify-between mb-3">

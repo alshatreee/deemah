@@ -7,10 +7,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Star, MapPin, Pencil } from 'lucide-react'
-import { fetchListingById, incrementViews } from '@/lib/listings'
+import { fetchListingById } from '@/lib/listings'
 import { listingPublicUrl } from '@/lib/storage'
 import { getUser } from '@/lib/auth'
+import { isInWishlist } from '@/lib/wishlist'
 import { BuyButton } from './buy-button'
+import { WishlistButton } from '@/components/listings/wishlist-button'
+import { TrackListingView } from '@/components/analytics/track-listing-view'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -32,10 +35,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
   const listing = await fetchListingById(id)
   if (!listing) notFound()
 
-  void incrementViews(id)
-
   const me = await getUser()
   const isOwner = !!me && me.id === listing.owner_id
+  const inWishlist = me ? await isInWishlist(me.id, listing.id) : false
   const images = listing.images.length
     ? listing.images.map(listingPublicUrl)
     : ['/images/listing-1.jpg']
@@ -80,6 +82,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
         }}
       />
       <Header />
+      <TrackListingView listingId={listing.id} />
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
@@ -116,14 +119,19 @@ export default async function ListingDetailPage({ params }: PageProps) {
                     <p className="text-muted-foreground mt-1">{listing.brand}</p>
                   )}
                 </div>
-                {isOwner && (
-                  <Link href={`/listings/${listing.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      <Pencil className="h-4 w-4 mr-2" />
-                      تعديل
-                    </Button>
-                  </Link>
-                )}
+                <div className="flex items-center gap-2">
+                  {!isOwner && (
+                    <WishlistButton listingId={listing.id} initialInWishlist={inWishlist} />
+                  )}
+                  {isOwner && (
+                    <Link href={`/listings/${listing.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        تعديل
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
