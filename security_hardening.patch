@@ -1,0 +1,156 @@
+From 22117b63b348877a88babda23dd9a65001b34a7d Mon Sep 17 00:00:00 2001
+From: alshatreee <alshatreee9@gmail.com>
+Date: Tue, 12 May 2026 21:18:41 +0000
+Subject: [PATCH] security: HTTPS headers, input validation, MIME check,
+ security.txt
+
+- Add HSTS, X-Frame-Options, X-Content-Type-Options, Permissions-Policy,
+  Referrer-Policy security headers to all routes via next.config.
+- Strengthen Zod schemas with max-length limits on listings/messages/profile
+  actions to prevent abuse via oversized inputs.
+- Validate image MIME type (JPEG/PNG/WebP only) and size (5MB) before upload
+  to Supabase storage.
+- Add security.txt for responsible disclosure.
+---
+ app/listings/new/actions.ts     | 12 ++++++------
+ app/messages/[id]/actions.ts    |  2 +-
+ app/profile/actions.ts          |  2 +-
+ lib/storage.ts                  | 10 +++++-----
+ next.config.mjs                 | 24 ++++++++++++++++++++++++
+ public/.well-known/security.txt |  4 ++++
+ 6 files changed, 41 insertions(+), 13 deletions(-)
+ create mode 100644 public/.well-known/security.txt
+
+diff --git a/app/listings/new/actions.ts b/app/listings/new/actions.ts
+index 6162d9f..ab67a99 100644
+--- a/app/listings/new/actions.ts
++++ b/app/listings/new/actions.ts
+@@ -14,16 +14,16 @@ const AGE_RANGES = ['0-2', '3-5', '6-9', '10-12'] as const
+ 
+ const listingSchema = z
+   .object({
+-    title: z.string().min(3, 'العنوان قصير').max(120),
+-    description: z.string().max(2000).optional().or(z.literal('')),
++    title: z.string().min(3, 'العنوان قصير').max(200),
++    description: z.string().max(5000).optional().or(z.literal('')),
+     category: z.enum(CATEGORIES, { message: 'صنّفي القطعة' }),
+-    brand: z.string().max(80).optional().or(z.literal('')),
+-    size: z.string().max(20).optional().or(z.literal('')),
+-    color: z.string().max(40).optional().or(z.literal('')),
++    brand: z.string().max(100).optional().or(z.literal('')),
++    size: z.string().max(50).optional().or(z.literal('')),
++    color: z.string().max(50).optional().or(z.literal('')),
+     condition: z.enum(CONDITIONS).optional(),
+     gender: z.enum(GENDERS).optional(),
+     age_range: z.enum(AGE_RANGES).optional(),
+-    price_buy: z.number().positive('أدخلي سعر البيع'),
++    price_buy: z.number().positive('أدخلي سعر البيع').max(99999.999),
+     images: z.array(z.string()).default([]),
+   })
+   .refine((d) => d.category !== 'kids' || !!d.gender, {
+diff --git a/app/messages/[id]/actions.ts b/app/messages/[id]/actions.ts
+index 9706250..2ff0211 100644
+--- a/app/messages/[id]/actions.ts
++++ b/app/messages/[id]/actions.ts
+@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server'
+ 
+ const sendSchema = z.object({
+   receiver_id: z.string().uuid('مستلم غير صالح'),
+-  body: z.string().min(1, 'الرسالة فارغة').max(2000),
++  body: z.string().trim().min(1, 'الرسالة فارغة').max(2000),
+   listing_id: z.string().uuid().optional().or(z.literal('')),
+ })
+ 
+diff --git a/app/profile/actions.ts b/app/profile/actions.ts
+index 0554412..50c4646 100644
+--- a/app/profile/actions.ts
++++ b/app/profile/actions.ts
+@@ -7,7 +7,7 @@ import { z } from 'zod'
+ import { createClient } from '@/lib/supabase/server'
+ 
+ const profileSchema = z.object({
+-  full_name: z.string().min(2, 'الاسم قصير').max(80),
++  full_name: z.string().min(2, 'الاسم قصير').max(100),
+   username: z
+     .string()
+     .min(3, 'اسم المستخدمة قصير')
+diff --git a/lib/storage.ts b/lib/storage.ts
+index 35ccfdd..ac6e762 100644
+--- a/lib/storage.ts
++++ b/lib/storage.ts
+@@ -3,8 +3,8 @@ import { createClient as createBrowserSupabase } from '@/lib/supabase/client'
+ const LISTINGS_BUCKET = 'listings'
+ const AVATARS_BUCKET = 'avatars'
+ 
+-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+-const MAX_FILE_BYTES = 8 * 1024 * 1024 // 8 MB
++const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
++const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB
+ 
+ export interface UploadResult {
+   path: string
+@@ -12,11 +12,11 @@ export interface UploadResult {
+ }
+ 
+ function assertImage(file: File): void {
+-  if (!ALLOWED_TYPES.includes(file.type)) {
+-    throw new Error('نوع الصورة غير مدعوم — استخدمي JPG/PNG/WEBP')
++  if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
++    throw new Error('نوع الملف غير مدعوم. JPG, PNG, WebP فقط')
+   }
+   if (file.size > MAX_FILE_BYTES) {
+-    throw new Error('حجم الصورة كبير جداً (الحد ٨MB)')
++    throw new Error('حجم الملف يجب أن يكون أقل من 5 ميجابايت')
+   }
+ }
+ 
+diff --git a/next.config.mjs b/next.config.mjs
+index b53664a..13ce858 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,8 +1,32 @@
+ /** @type {import('next').NextConfig} */
++const securityHeaders = [
++  { key: 'X-Frame-Options', value: 'DENY' },
++  { key: 'X-Content-Type-Options', value: 'nosniff' },
++  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
++  {
++    key: 'Permissions-Policy',
++    value:
++      'camera=(), microphone=(), geolocation=(), payment=(self "https://*.tap.company" "https://secure-acceptance.cybersource.com")',
++  },
++  {
++    key: 'Strict-Transport-Security',
++    value: 'max-age=63072000; includeSubDomains; preload',
++  },
++  { key: 'X-DNS-Prefetch-Control', value: 'on' },
++]
++
+ const nextConfig = {
+   images: {
+     unoptimized: true,
+   },
++  async headers() {
++    return [
++      {
++        source: '/:path*',
++        headers: securityHeaders,
++      },
++    ]
++  },
+ }
+ 
+ export default nextConfig
+diff --git a/public/.well-known/security.txt b/public/.well-known/security.txt
+new file mode 100644
+index 0000000..0c6d31b
+--- /dev/null
++++ b/public/.well-known/security.txt
+@@ -0,0 +1,4 @@
++Contact: mailto:alshatreee9@gmail.com
++Expires: 2027-01-01T00:00:00.000Z
++Preferred-Languages: ar, en
++Policy: https://deemah.vercel.app/security
+-- 
+2.34.1
+

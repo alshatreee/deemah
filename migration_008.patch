@@ -1,0 +1,62 @@
+From 50bf18a594429f005fdad2ce0049c9820754ae0f Mon Sep 17 00:00:00 2001
+From: alshatreee <alshatreee9@gmail.com>
+Date: Tue, 12 May 2026 11:57:16 +0000
+Subject: [PATCH] db: enforce listings.price_buy > 0 NOT NULL
+
+Adds migration 008 with a CHECK constraint preventing zero or negative
+prices, and sets the column NOT NULL. Also updates the 001 baseline and
+schema.sql so a fresh DB applies the constraint from the start.
+
+The constraint was already applied to production on 2026-05-12.
+---
+ supabase/migrations/001_initial.sql                 |  2 +-
+ supabase/migrations/008_listings_price_positive.sql | 10 ++++++++++
+ supabase/schema.sql                                 |  2 +-
+ 3 files changed, 12 insertions(+), 2 deletions(-)
+ create mode 100644 supabase/migrations/008_listings_price_positive.sql
+
+diff --git a/supabase/migrations/001_initial.sql b/supabase/migrations/001_initial.sql
+index 886e04f..7ac8659 100644
+--- a/supabase/migrations/001_initial.sql
++++ b/supabase/migrations/001_initial.sql
+@@ -67,7 +67,7 @@ create table if not exists public.listings (
+   size text,
+   color text,
+   condition text check (condition in ('new','like_new','good','fair')),
+-  price_buy numeric(10,3),
++  price_buy numeric(10,3) not null check (price_buy > 0),
+   -- Kids filters (migration 004): only allowed when category = 'kids'
+   gender text check (gender in ('boys','girls','unisex')),
+   age_range text check (age_range in ('0-2','3-5','6-9','10-12')),
+diff --git a/supabase/migrations/008_listings_price_positive.sql b/supabase/migrations/008_listings_price_positive.sql
+new file mode 100644
+index 0000000..392f021
+--- /dev/null
++++ b/supabase/migrations/008_listings_price_positive.sql
+@@ -0,0 +1,10 @@
++-- Migration 008: enforce positive price + non-null on listings.price_buy
++-- Prevents 0 KWD or NULL price listings from being created or appearing in the UI.
++-- Applied to production DB on 2026-05-12.
++
++alter table public.listings alter column price_buy set not null;
++
++alter table public.listings drop constraint if exists listings_price_buy_positive;
++alter table public.listings
++  add constraint listings_price_buy_positive
++  check (price_buy > 0);
+diff --git a/supabase/schema.sql b/supabase/schema.sql
+index 20f94fe..88f7e49 100644
+--- a/supabase/schema.sql
++++ b/supabase/schema.sql
+@@ -61,7 +61,7 @@ create table if not exists public.listings (
+   size text,
+   color text,
+   condition text check (condition in ('new','like_new','good','fair')),
+-  price_buy numeric(10,3),
++  price_buy numeric(10,3) not null check (price_buy > 0),
+   -- Kids filters (migration 004): only allowed when category = 'kids'
+   gender text check (gender in ('boys','girls','unisex')),
+   age_range text check (age_range in ('0-2','3-5','6-9','10-12')),
+-- 
+2.34.1
+

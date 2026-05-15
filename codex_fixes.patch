@@ -1,0 +1,61 @@
+From dfb724ff6145a259909785096bb3e6722d6ce882 Mon Sep 17 00:00:00 2001
+From: alshatreee <alshatreee9@gmail.com>
+Date: Mon, 11 May 2026 22:20:11 +0000
+Subject: [PATCH] security: escape JSON-LD output + validate UUID inputs in
+ fetchThread
+
+- Fix stored XSS risk in app/listings/[id]/page.tsx by escaping < as \u003c
+  in JSON.stringify output before injecting via dangerouslySetInnerHTML.
+- Validate partnerId and userId as UUIDs in lib/messages.ts fetchThread
+  before interpolating them into the PostgREST .or() filter string.
+---
+ app/listings/[id]/page.tsx | 4 +++-
+ lib/messages.ts            | 7 ++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/app/listings/[id]/page.tsx b/app/listings/[id]/page.tsx
+index cbd4436..ea55871 100644
+--- a/app/listings/[id]/page.tsx
++++ b/app/listings/[id]/page.tsx
+@@ -75,7 +75,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
+       <script
+         type="application/ld+json"
+         // eslint-disable-next-line react/no-danger -- structured data must be raw JSON
+-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
++        dangerouslySetInnerHTML={{
++          __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c'),
++        }}
+       />
+       <Header />
+ 
+diff --git a/lib/messages.ts b/lib/messages.ts
+index c24862d..09d24a2 100644
+--- a/lib/messages.ts
++++ b/lib/messages.ts
+@@ -1,5 +1,8 @@
+ import { createClient } from '@/lib/supabase/server'
+ import type { ConversationSummary, Message, UserProfile } from '@/lib/types'
++import { z } from 'zod'
++
++const uuidSchema = z.string().uuid()
+ 
+ const PARTNER_SELECT = 'id, username, full_name, avatar_url'
+ 
+@@ -70,11 +73,13 @@ export async function fetchThread(
+   partner: Pick<UserProfile, 'id' | 'username' | 'full_name' | 'avatar_url'> | null
+ }> {
+   const supabase = await createClient()
++  const safePartnerId = uuidSchema.parse(partnerId)
++  const safeUserId = uuidSchema.parse(userId)
+   const { data: msgs, error } = await supabase
+     .from('messages')
+     .select('*')
+     .or(
+-      `and(sender_id.eq.${userId},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${userId})`,
++      `and(sender_id.eq.${safeUserId},receiver_id.eq.${safePartnerId}),and(sender_id.eq.${safePartnerId},receiver_id.eq.${safeUserId})`,
+     )
+     .order('created_at', { ascending: true })
+     .limit(500)
+-- 
+2.34.1
+
