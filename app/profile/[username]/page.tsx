@@ -13,6 +13,8 @@ import { listingPublicUrl } from '@/lib/storage'
 import { getUser } from '@/lib/auth'
 import type { UserProfile } from '@/lib/types'
 import { ReviewList } from '@/components/reviews/review-list'
+import { BlockButton } from '@/components/profile/block-button'
+import { isBlockedByMe } from './block-actions'
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -34,8 +36,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const profile = await fetchProfileByUsernameOrId(username)
   if (!profile) notFound()
 
-  const listings = await fetchUserListings(profile.id)
-  const me = await getUser()
+  const [listings, me, blocked] = await Promise.all([
+    fetchUserListings(profile.id),
+    getUser(),
+    isBlockedByMe(profile.id),
+  ])
   const isMe = !!me && me.id === profile.id
 
   return (
@@ -63,9 +68,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                 )}
               </div>
               {profile.username && (
-                <p className="text-sm text-muted-foreground" dir="ltr">
-                  @{profile.username}
-                </p>
+                <p className="text-sm text-muted-foreground" dir="ltr">@{profile.username}</p>
               )}
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
@@ -84,20 +87,21 @@ export default async function PublicProfilePage({ params }: PageProps) {
               {profile.bio && (
                 <p className="text-sm leading-7 mt-2 whitespace-pre-wrap">{profile.bio}</p>
               )}
-              <div className="flex gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-2 flex-wrap">
                 {isMe ? (
                   <Link href="/profile">
-                    <Button variant="outline" size="sm">
-                      تعديل ملفي
-                    </Button>
+                    <Button variant="outline" size="sm">تعديل ملفي</Button>
                   </Link>
                 ) : me ? (
-                  <Link href={`/messages/${profile.id}`}>
-                    <Button size="sm">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      راسلي
-                    </Button>
-                  </Link>
+                  <>
+                    <Link href={`/messages/${profile.id}`}>
+                      <Button size="sm">
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        راسلي
+                      </Button>
+                    </Link>
+                    <BlockButton targetId={profile.id} initiallyBlocked={blocked} />
+                  </>
                 ) : (
                   <Link href={`/login?redirectTo=/profile/${username}`}>
                     <Button size="sm">سجّلي للتواصل</Button>
@@ -116,26 +120,24 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {listings
-                .filter((l) => l.status === 'active')
-                .map((l) => {
-                  const img = l.images[0] ? listingPublicUrl(l.images[0]) : '/images/listing-1.jpg'
-                  return (
-                    <Link key={l.id} href={`/listings/${l.id}`}>
-                      <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="relative aspect-[3/4] bg-muted">
-                          <Image src={img} alt={l.title} fill className="object-cover" />
-                        </div>
-                        <CardContent className="p-3">
-                          <p className="font-medium text-sm truncate">{l.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {Number(l.price_buy ?? 0).toLocaleString('ar-KW')} د.ك
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  )
-                })}
+              {listings.filter((l) => l.status === 'active').map((l) => {
+                const img = l.images[0] ? listingPublicUrl(l.images[0]) : '/images/listing-1.jpg'
+                return (
+                  <Link key={l.id} href={`/listings/${l.id}`}>
+                    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="relative aspect-[3/4] bg-muted">
+                        <Image src={img} alt={l.title} fill className="object-cover" />
+                      </div>
+                      <CardContent className="p-3">
+                        <p className="font-medium text-sm truncate">{l.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {Number(l.price_buy ?? 0).toLocaleString('ar-KW')} د.ك
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </section>

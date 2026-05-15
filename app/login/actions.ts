@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { authLimiter } from '@/lib/ratelimit'
+import { verifyTurnstile } from '@/lib/turnstile'
 
 const loginSchema = z.object({
   email: z.string().email('بريد إلكتروني غير صالح'),
@@ -18,6 +19,13 @@ interface ActionResult {
 }
 
 export async function loginAction(formData: FormData): Promise<ActionResult> {
+  // CAPTCHA verification
+  const captchaToken = formData.get('cf-turnstile-response')?.toString() ?? null
+  const captchaOk = await verifyTurnstile(captchaToken)
+  if (!captchaOk) {
+    return { error: 'فشل التحقق من CAPTCHA. حاولي مجدداً.' }
+  }
+
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -51,18 +59,10 @@ export async function loginWithGoogle(): Promise<ActionResult> {
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      redirectTo: `${siteUrl}/api/auth/callback`,
-    },
+    options: { redirectTo: `${siteUrl}/api/auth/callback` },
   })
 
-  if (error) {
-    return { error: 'فشل تسجيل الدخول بـGoogle' }
-  }
-
-  if (data.url) {
-    redirect(data.url)
-  }
-
+  if (error) return { error: 'فشل تسجيل الدخول بـGoogle' }
+  if (data.url) redirect(data.url)
   return { success: true }
 }

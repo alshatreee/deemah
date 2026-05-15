@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { authLimiter } from '@/lib/ratelimit'
+import { verifyTurnstile } from '@/lib/turnstile'
 
 const registerSchema = z.object({
   full_name: z.string().min(2, 'الاسم قصير'),
@@ -33,29 +34,25 @@ interface AdminUserResponse {
 function mapAdminError(payload: AdminUserResponse, status: number): string {
   const msg = (payload.msg ?? payload.error_description ?? payload.error ?? '').toLowerCase()
   const code = payload.error_code ?? ''
-
-  if (
-    status === 422 &&
-    (msg.includes('already') ||
-      msg.includes('registered') ||
-      code === 'email_exists' ||
-      code === 'user_already_exists')
-  ) {
+  if (status === 422 && (msg.includes('already') || msg.includes('registered') || code === 'email_exists' || code === 'user_already_exists'))
     return 'هذا البريد مسجّل مسبقاً'
-  }
-  if (status === 422 && (msg.includes('password') || msg.includes('weak'))) {
+  if (status === 422 && (msg.includes('password') || msg.includes('weak')))
     return 'كلمة المرور ضعيفة'
-  }
-  if (status === 429 || code.includes('rate_limit')) {
+  if (status === 429 || code.includes('rate_limit'))
     return 'محاولات كثيرة، حاولي بعد قليل'
-  }
-  if (status === 400 && msg.includes('invalid')) {
+  if (status === 400 && msg.includes('invalid'))
     return 'البريد الإلكتروني غير مقبول'
-  }
   return 'تعذّر إنشاء الحساب'
 }
 
 export async function registerAction(formData: FormData): Promise<ActionResult> {
+  // CAPTCHA verification
+  const captchaToken = formData.get('cf-turnstile-response')?.toString() ?? null
+  const captchaOk = await verifyTurnstile(captchaToken)
+  if (!captchaOk) {
+    return { error: 'فشل التحقق من CAPTCHA. حاولي مجدداً.' }
+  }
+
   const parsed = registerSchema.safeParse({
     full_name: formData.get('full_name'),
     email: formData.get('email'),
@@ -83,7 +80,6 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
 
   const username = parsed.data.email.split('@')[0]
 
-  // 1. Create confirmed user via admin endpoint (bypasses email confirmation)
   let adminStatus: number
   let adminPayload: AdminUserResponse
   try {
@@ -98,10 +94,7 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
         email: parsed.data.email,
         password: parsed.data.password,
         email_confirm: true,
-        user_metadata: {
-          full_name: parsed.data.full_name,
-          username,
-        },
+        user_metadata: { full_name: parsed.data.full_name, username },
       }),
       cache: 'no-store',
     })
@@ -114,15 +107,10 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
   }
 
   if (adminStatus < 200 || adminStatus >= 300 || !adminPayload.id) {
-    console.error(
-      '[registerAction] admin error:',
-      adminStatus,
-      JSON.stringify(adminPayload),
-    )
+    console.error('[registerAction] admin error:', adminStatus, JSON.stringify(adminPayload))
     return { error: mapAdminError(adminPayload, adminStatus) }
   }
 
-  // 2. Sign user in to set session cookies via SSR client
   const supabase = await createClient()
   const { error: signInError } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
