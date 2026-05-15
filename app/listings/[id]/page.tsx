@@ -6,7 +6,14 @@ import { Footer } from '@/components/layout/footer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Star, MapPin, Pencil } from 'lucide-react'
+import { Star, MapPin, Pencil, ShieldCheck, Truck } from 'lucide-react'
+import { colorById } from '@/lib/constants/colors'
+import { areaLabel } from '@/lib/constants/areas'
+import { conditionMeta } from '@/lib/constants/conditions'
+import { deliveryMethodLabel } from '@/lib/constants/delivery'
+import { subCategoryLabel } from '@/lib/constants/sub-categories'
+import { brandLabel } from '@/lib/constants/brands'
+import { ConditionBadge } from '@/components/listings/condition-badge'
 import { fetchListingById } from '@/lib/listings'
 import { listingPublicUrl } from '@/lib/storage'
 import { getUser } from '@/lib/auth'
@@ -114,9 +121,16 @@ export default async function ListingDetailPage({ params }: PageProps) {
             <div className="space-y-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
                   {listing.brand && (
-                    <p className="text-muted-foreground mt-1">{listing.brand}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                      {brandLabel(listing.brand)}
+                    </p>
+                  )}
+                  <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
+                  {subCategoryLabel(listing.category, listing.sub_category) && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {subCategoryLabel(listing.category, listing.sub_category)}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -134,16 +148,45 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <Badge className="bg-primary text-primary-foreground">للبيع</Badge>
-                {listing.condition && (
-                  <Badge variant="secondary">{listing.condition}</Badge>
+                {listing.authenticity_status === 'verified' && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white px-2 py-0.5 text-xs font-medium">
+                    <ShieldCheck className="h-3 w-3" />
+                    أصلية ✓
+                  </span>
                 )}
+                <ConditionBadge condition={listing.condition} size="md" />
                 {listing.size && (
                   <Badge variant="secondary">المقاس: {listing.size}</Badge>
                 )}
-                {listing.color && (
-                  <Badge variant="secondary">اللون: {listing.color}</Badge>
+                {listing.color && colorById(listing.color) && (
+                  <Badge variant="secondary" className="gap-1.5">
+                    <span
+                      className="inline-block w-3 h-3 rounded-full border"
+                      style={
+                        listing.color === 'multi'
+                          ? { backgroundImage: colorById(listing.color)!.hex }
+                          : { backgroundColor: colorById(listing.color)!.hex }
+                      }
+                    />
+                    {colorById(listing.color)!.label}
+                  </Badge>
+                )}
+                {areaLabel(listing.area) && (
+                  <Badge variant="secondary" className="gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {areaLabel(listing.area)}
+                  </Badge>
+                )}
+                {deliveryMethodLabel(listing.delivery_method) && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Truck className="h-3 w-3" />
+                    {deliveryMethodLabel(listing.delivery_method)}
+                    {Number(listing.delivery_fee ?? 0) > 0 && (
+                      <span> · {Number(listing.delivery_fee)} د.ك</span>
+                    )}
+                  </Badge>
                 )}
                 {listing.category === 'kids' && listing.gender && (
                   <Badge variant="secondary">{GENDER_LABEL[listing.gender] ?? listing.gender}</Badge>
@@ -155,8 +198,26 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
               <div className="space-y-2">
                 {listing.price_buy != null && (
-                  <div className="text-3xl font-bold text-primary">
-                    {Number(listing.price_buy).toLocaleString('ar-KW')} د.ك
+                  <div className="flex items-baseline gap-3">
+                    <div className="text-3xl font-bold text-primary">
+                      {Number(listing.price_buy).toLocaleString('ar-KW')} د.ك
+                    </div>
+                    {listing.original_price &&
+                      Number(listing.original_price) > Number(listing.price_buy) && (
+                        <>
+                          <span className="text-lg text-muted-foreground line-through">
+                            {Number(listing.original_price).toLocaleString('ar-KW')} د.ك
+                          </span>
+                          <span className="text-sm font-semibold text-red-600">
+                            {Math.round(
+                              ((Number(listing.original_price) - Number(listing.price_buy)) /
+                                Number(listing.original_price)) *
+                                100,
+                            )}
+                            % خصم
+                          </span>
+                        </>
+                      )}
                   </div>
                 )}
               </div>
@@ -187,8 +248,14 @@ export default async function ListingDetailPage({ params }: PageProps) {
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold">
+                        <p className="font-semibold flex items-center gap-1.5">
                           {listing.owner.full_name ?? listing.owner.username ?? 'بائعة'}
+                          {listing.owner.authenticated_at && (
+                            <ShieldCheck
+                              className="h-4 w-4 text-blue-500"
+                              aria-label="بائعة موثّقة"
+                            />
+                          )}
                         </p>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Star className="h-3 w-3 fill-current text-amber-500" />

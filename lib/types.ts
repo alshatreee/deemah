@@ -68,7 +68,7 @@ export interface Listing {
 }
 
 export interface ListingWithOwner extends Listing {
-  owner: Pick<UserProfile, 'id' | 'username' | 'full_name' | 'avatar_url' | 'rating'> | null
+  owner: Pick<UserProfile, 'id' | 'username' | 'full_name' | 'avatar_url' | 'rating' | 'is_verified' | 'authenticated_at'> | null
 }
 
 export interface Message {

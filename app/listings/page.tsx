@@ -157,7 +157,9 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                       seller={{
                         name: l.owner?.full_name ?? l.owner?.username ?? 'بائعة',
                         rating: Number(l.owner?.rating ?? 0),
+                        verified: !!l.owner?.authenticated_at,
                       }}
+                      authenticityVerified={l.authenticity_status === 'verified'}
                       condition={l.condition}
                       size={l.size}
                     />

@@ -7,7 +7,7 @@ import type {
   KidsAgeRange,
 } from '@/lib/types'
 
-const OWNER_SELECT = 'id, username, full_name, avatar_url, rating'
+const OWNER_SELECT = 'id, username, full_name, avatar_url, rating, is_verified, authenticated_at'
 const LISTING_SELECT = `*, owner:users!listings_owner_id_fkey(${OWNER_SELECT})`
 
 export interface ListingFilters {
