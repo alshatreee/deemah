@@ -11,6 +11,7 @@ const footerLinks = {
     { href: "/faq", label: "الأسئلة الشائعة" },
     { href: "/contact", label: "تواصلي معنا" },
     { href: "/terms", label: "الشروط والأحكام" },
+    { href: "/privacy", label: "سياسة الخصوصية" },
   ],
   social: [
     { href: "https://instagram.com", icon: Instagram, label: "انستغرام" },
