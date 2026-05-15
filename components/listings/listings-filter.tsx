@@ -20,6 +20,12 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { SlidersHorizontal, X } from 'lucide-react'
+import { ColorSwatchGrid } from './color-swatch'
+import { KW_AREAS } from '@/lib/constants/areas'
+import { POPULAR_BRANDS } from '@/lib/constants/brands'
+import { CONDITIONS } from '@/lib/constants/conditions'
+import { sizesForCategory } from '@/lib/constants/sizes'
+import { subCategoriesFor } from '@/lib/constants/sub-categories'
 
 const CATEGORIES = [
   { id: 'women', label: 'نسائي' },
@@ -43,8 +49,6 @@ const AGE_RANGES = [
   { id: '10-12', label: '١٠–١٢ سنة' },
 ] as const
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const
-
 interface ListingsFilterProps {
   variant?: 'sidebar' | 'sheet-only'
 }
@@ -56,15 +60,19 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
   const [, startTransition] = useTransition()
 
   const currentCategory = search.get('category') ?? ''
+  const currentSub = search.get('sub') ?? ''
   const currentSize = search.get('size') ?? ''
   const currentBrand = search.get('brand') ?? ''
+  const currentColor = search.get('color') ?? ''
+  const currentArea = search.get('area') ?? ''
+  const currentCondition = search.get('condition') ?? ''
   const currentGender = search.get('gender') ?? ''
   const currentAge = search.get('age') ?? ''
   const currentMin = search.get('min') ?? ''
   const currentMax = search.get('max') ?? ''
   const isKids = currentCategory === 'kids'
 
-  const [brand, setBrand] = useState<string>(currentBrand)
+  const [brandQuery, setBrandQuery] = useState<string>(currentBrand)
   const [minPrice, setMinPrice] = useState<string>(currentMin)
   const [maxPrice, setMaxPrice] = useState<string>(currentMax)
 
@@ -83,18 +91,34 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
 
   function selectCategory(id: string, checked: boolean) {
     if (checked) {
-      navigate({ category: undefined, gender: undefined, age: undefined })
+      navigate({
+        category: undefined,
+        sub: undefined,
+        gender: undefined,
+        age: undefined,
+        size: undefined,
+      })
       return
     }
     if (id !== 'kids') {
-      navigate({ category: id, gender: undefined, age: undefined })
+      navigate({
+        category: id,
+        sub: undefined,
+        gender: undefined,
+        age: undefined,
+        size: undefined,
+      })
     } else {
-      navigate({ category: id })
+      navigate({ category: id, sub: undefined, size: undefined })
     }
   }
 
+  function toggleColor(id: string) {
+    navigate({ color: currentColor === id ? undefined : id })
+  }
+
   function clearAll() {
-    setBrand('')
+    setBrandQuery('')
     setMinPrice('')
     setMaxPrice('')
     startTransition(() => {
@@ -104,19 +128,44 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
 
   const hasActive =
     !!currentCategory ||
+    !!currentSub ||
     !!currentSize ||
     !!currentBrand ||
+    !!currentColor ||
+    !!currentArea ||
+    !!currentCondition ||
     !!currentGender ||
     !!currentAge ||
     !!currentMin ||
     !!currentMax
+
+  const sizes = sizesForCategory(currentCategory || undefined)
+  const subs = subCategoriesFor(currentCategory || undefined)
+
+  const filteredBrands = brandQuery
+    ? POPULAR_BRANDS.filter(
+        (b) =>
+          b.label.includes(brandQuery) ||
+          b.slug.toLowerCase().includes(brandQuery.toLowerCase()),
+      )
+    : POPULAR_BRANDS
 
   function FilterContent() {
     return (
       <div className="space-y-6">
         <Accordion
           type="multiple"
-          defaultValue={['categories', 'price', 'kids']}
+          defaultValue={[
+            'categories',
+            'sub',
+            'color',
+            'area',
+            'price',
+            'sizes',
+            'condition',
+            'brand',
+            'kids',
+          ]}
           className="w-full"
         >
           <AccordionItem value="categories">
@@ -132,8 +181,87 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
                         checked={checked}
                         onCheckedChange={() => selectCategory(c.id, checked)}
                       />
+                      <Label htmlFor={`cat-${c.id}`} className="font-normal cursor-pointer">
+                        {c.label}
+                      </Label>
+                    </div>
+                  )
+                })}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {subs.length > 0 && (
+            <AccordionItem value="sub">
+              <AccordionTrigger className="text-base font-semibold">
+                النوع
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {subs.map((s) => (
+                    <Button
+                      key={s.id}
+                      variant={currentSub === s.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() =>
+                        navigate({ sub: currentSub === s.id ? undefined : s.id })
+                      }
+                    >
+                      {s.label}
+                    </Button>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          <AccordionItem value="color">
+            <AccordionTrigger className="text-base font-semibold">اللون</AccordionTrigger>
+            <AccordionContent>
+              <ColorSwatchGrid
+                selected={currentColor ? [currentColor] : []}
+                onToggle={toggleColor}
+              />
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="area">
+            <AccordionTrigger className="text-base font-semibold">المنطقة</AccordionTrigger>
+            <AccordionContent>
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                {KW_AREAS.map((a) => (
+                  <Button
+                    key={a.id}
+                    variant={currentArea === a.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() =>
+                      navigate({ area: currentArea === a.id ? undefined : a.id })
+                    }
+                  >
+                    {a.label}
+                  </Button>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="condition">
+            <AccordionTrigger className="text-base font-semibold">الحالة</AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pt-2">
+                {CONDITIONS.map((c) => {
+                  const checked = currentCondition === c.id
+                  return (
+                    <div key={c.id} className="flex items-center gap-3">
+                      <Checkbox
+                        id={`cond-${c.id}`}
+                        checked={checked}
+                        onCheckedChange={() =>
+                          navigate({ condition: checked ? undefined : c.id })
+                        }
+                      />
                       <Label
-                        htmlFor={`cat-${c.id}`}
+                        htmlFor={`cond-${c.id}`}
                         className="font-normal cursor-pointer"
                       >
                         {c.label}
@@ -153,9 +281,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
               <AccordionContent>
                 <div className="space-y-4 pt-2">
                   <div>
-                    <Label className="text-xs text-muted-foreground mb-2 block">
-                      النوع
-                    </Label>
+                    <Label className="text-xs text-muted-foreground mb-2 block">النوع</Label>
                     <div className="flex flex-wrap gap-2">
                       {GENDERS.map((g) => (
                         <Button
@@ -174,9 +300,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground mb-2 block">
-                      العمر
-                    </Label>
+                    <Label className="text-xs text-muted-foreground mb-2 block">العمر</Label>
                     <div className="flex flex-wrap gap-2">
                       {AGE_RANGES.map((a) => (
                         <Button
@@ -184,9 +308,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
                           variant={currentAge === a.id ? 'default' : 'outline'}
                           size="sm"
                           onClick={() =>
-                            navigate({
-                              age: currentAge === a.id ? undefined : a.id,
-                            })
+                            navigate({ age: currentAge === a.id ? undefined : a.id })
                           }
                         >
                           {a.label}
@@ -206,9 +328,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
             <AccordionContent>
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <div className="space-y-1">
-                  <Label htmlFor="min" className="text-xs text-muted-foreground">
-                    من
-                  </Label>
+                  <Label htmlFor="min" className="text-xs text-muted-foreground">من</Label>
                   <Input
                     id="min"
                     type="number"
@@ -220,9 +340,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="max" className="text-xs text-muted-foreground">
-                    إلى
-                  </Label>
+                  <Label htmlFor="max" className="text-xs text-muted-foreground">إلى</Label>
                   <Input
                     id="max"
                     type="number"
@@ -240,8 +358,8 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
           <AccordionItem value="sizes">
             <AccordionTrigger className="text-base font-semibold">المقاس</AccordionTrigger>
             <AccordionContent>
-              <div className="flex flex-wrap gap-2 pt-2">
-                {SIZES.map((s) => (
+              <div className="flex flex-wrap gap-2 pt-2 max-h-48 overflow-y-auto">
+                {sizes.map((s) => (
                   <Button
                     key={s}
                     variant={currentSize === s ? 'default' : 'outline'}
@@ -262,11 +380,31 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
             <AccordionTrigger className="text-base font-semibold">الماركة</AccordionTrigger>
             <AccordionContent>
               <Input
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                onBlur={() => navigate({ brand: brand || undefined })}
-                placeholder="مثلاً: شانيل"
+                value={brandQuery}
+                onChange={(e) => setBrandQuery(e.target.value)}
+                placeholder="ابحثي مثلاً: شانيل"
+                className="mb-3"
               />
+              <div className="max-h-48 overflow-y-auto space-y-1">
+                {filteredBrands.slice(0, 30).map((b) => (
+                  <button
+                    key={b.slug}
+                    type="button"
+                    onClick={() =>
+                      navigate({
+                        brand: currentBrand === b.label ? undefined : b.label,
+                      })
+                    }
+                    className={`w-full text-right px-3 py-2 rounded text-sm transition-colors ${
+                      currentBrand === b.label
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -295,7 +433,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
             )}
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+        <SheetContent side="right" className="w-[320px] sm:w-[400px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>فلترة النتائج</SheetTitle>
           </SheetHeader>
@@ -309,7 +447,7 @@ export function ListingsFilter({ variant = 'sidebar' }: ListingsFilterProps) {
 
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-24 bg-card rounded-xl border p-6">
+      <div className="sticky top-24 bg-card rounded-xl border p-6 max-h-[calc(100vh-7rem)] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-6">فلترة النتائج</h2>
         <FilterContent />
       </div>

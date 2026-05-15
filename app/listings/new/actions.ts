@@ -13,20 +13,31 @@ const CATEGORIES = ['women', 'men', 'kids', 'accessories', 'shoes', 'bags'] as c
 const CONDITIONS = ['new', 'like_new', 'good', 'fair'] as const
 const GENDERS = ['boys', 'girls', 'unisex'] as const
 const AGE_RANGES = ['0-2', '3-5', '6-9', '10-12'] as const
+const KW_AREAS = ['capital', 'hawalli', 'farwaniya', 'mubarak', 'ahmadi', 'jahra'] as const
+const DELIVERY_METHODS = ['meet_in_person', 'seller_delivery', 'courier'] as const
 
 const listingSchema = z
   .object({
     title: z.string().min(3, 'العنوان قصير').max(200),
     description: z.string().max(5000).optional().or(z.literal('')),
     category: z.enum(CATEGORIES, { message: 'صنّفي القطعة' }),
+    sub_category: z.string().max(50).optional().or(z.literal('')),
     brand: z.string().max(100).optional().or(z.literal('')),
     size: z.string().max(50).optional().or(z.literal('')),
     color: z.string().max(50).optional().or(z.literal('')),
     condition: z.enum(CONDITIONS).optional(),
     gender: z.enum(GENDERS).optional(),
     age_range: z.enum(AGE_RANGES).optional(),
+    area: z.enum(KW_AREAS).optional(),
+    delivery_method: z.enum(DELIVERY_METHODS).optional(),
+    delivery_fee: z.number().min(0).max(99).optional(),
+    original_price: z.number().positive().max(99999.999).optional(),
     price_buy: z.number().positive('أدخلي سعر البيع').max(99999.999),
     images: z.array(z.string()).default([]),
+  })
+  .refine((d) => !d.original_price || d.original_price >= d.price_buy, {
+    message: 'السعر الأصلي لازم يكون أكبر من سعر البيع',
+    path: ['original_price'],
   })
   .refine((d) => d.category !== 'kids' || !!d.gender, {
     message: 'حدّدي نوع الأطفال (أولاد/بنات/للجنسين)',
@@ -54,12 +65,17 @@ function fromForm(formData: FormData): unknown {
     title: String(formData.get('title') ?? ''),
     description: String(formData.get('description') ?? ''),
     category: formData.get('category'),
+    sub_category: String(formData.get('sub_category') ?? ''),
     brand: String(formData.get('brand') ?? ''),
     size: String(formData.get('size') ?? ''),
     color: String(formData.get('color') ?? ''),
     condition: formData.get('condition') || undefined,
     gender: formData.get('gender') || undefined,
     age_range: formData.get('age_range') || undefined,
+    area: formData.get('area') || undefined,
+    delivery_method: formData.get('delivery_method') || undefined,
+    delivery_fee: toNumber(formData.get('delivery_fee')),
+    original_price: toNumber(formData.get('original_price')),
     price_buy: toNumber(formData.get('price_buy')),
     images,
   }
@@ -97,12 +113,17 @@ export async function createListingAction(formData: FormData): Promise<ActionRes
     title: parsed.data.title,
     description: parsed.data.description || null,
     category: parsed.data.category,
+    sub_category: parsed.data.sub_category || null,
     brand: parsed.data.brand || null,
     size: parsed.data.size || null,
     color: parsed.data.color || null,
     condition: parsed.data.condition ?? null,
     gender: parsed.data.category === 'kids' ? parsed.data.gender ?? null : null,
     age_range: parsed.data.category === 'kids' ? parsed.data.age_range ?? null : null,
+    area: parsed.data.area ?? null,
+    delivery_method: parsed.data.delivery_method ?? null,
+    delivery_fee: parsed.data.delivery_fee ?? 0,
+    original_price: parsed.data.original_price ?? null,
     price_buy: parsed.data.price_buy,
     images: parsed.data.images,
     status: 'active' as const,
@@ -143,12 +164,17 @@ export async function updateListingAction(
     title: parsed.data.title,
     description: parsed.data.description || null,
     category: parsed.data.category,
+    sub_category: parsed.data.sub_category || null,
     brand: parsed.data.brand || null,
     size: parsed.data.size || null,
     color: parsed.data.color || null,
     condition: parsed.data.condition ?? null,
     gender: parsed.data.category === 'kids' ? parsed.data.gender ?? null : null,
     age_range: parsed.data.category === 'kids' ? parsed.data.age_range ?? null : null,
+    area: parsed.data.area ?? null,
+    delivery_method: parsed.data.delivery_method ?? null,
+    delivery_fee: parsed.data.delivery_fee ?? 0,
+    original_price: parsed.data.original_price ?? null,
     price_buy: parsed.data.price_buy,
     images: parsed.data.images,
     updated_at: new Date().toISOString(),

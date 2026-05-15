@@ -14,6 +14,16 @@ export type ListingStatus = 'draft' | 'active' | 'sold' | 'archived'
 
 export type KidsGender = 'boys' | 'girls' | 'unisex'
 export type KidsAgeRange = '0-2' | '3-5' | '6-9' | '10-12'
+export type KwAreaId =
+  | 'capital'
+  | 'hawalli'
+  | 'farwaniya'
+  | 'mubarak'
+  | 'ahmadi'
+  | 'jahra'
+
+export type DeliveryMethod = 'meet_in_person' | 'seller_delivery' | 'courier'
+
 
 export interface UserProfile {
   id: string
@@ -25,6 +35,9 @@ export interface UserProfile {
   city: string | null
   rating: number | null
   is_verified: boolean | null
+  default_area: KwAreaId | null
+  authenticated_at: string | null
+  kyc_doc_url: string | null
   created_at: string
   updated_at: string
 }
@@ -45,6 +58,11 @@ export interface Listing {
   images: string[]
   status: ListingStatus
   views_count: number
+  area: KwAreaId | null
+  original_price: number | null
+  sub_category: string | null
+  delivery_method: DeliveryMethod | null
+  delivery_fee: number | null
   created_at: string
   updated_at: string
 }

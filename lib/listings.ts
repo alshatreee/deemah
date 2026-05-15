@@ -12,15 +12,18 @@ const LISTING_SELECT = `*, owner:users!listings_owner_id_fkey(${OWNER_SELECT})`
 
 export interface ListingFilters {
   category?: ListingCategory
+  sub_category?: string
   size?: string
   color?: string
   brand?: string
+  area?: string
+  condition?: string
   gender?: KidsGender
   age_range?: KidsAgeRange
   minPrice?: number
   maxPrice?: number
   search?: string
-  sort?: 'newest' | 'price_asc' | 'price_desc' | 'rating'
+  sort?: 'newest' | 'price_asc' | 'price_desc' | 'popular' | 'featured' | 'rating'
   limit?: number
   offset?: number
 }
@@ -41,9 +44,12 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Paged
     .eq('status', 'active')
 
   if (filters.category) q = q.eq('category', filters.category)
+  if (filters.sub_category) q = q.eq('sub_category', filters.sub_category)
   if (filters.size) q = q.eq('size', filters.size)
-  if (filters.color) q = q.ilike('color', `%${filters.color}%`)
-  if (filters.brand) q = q.ilike('brand', `%${filters.brand}%`)
+  if (filters.color) q = q.eq('color', filters.color)
+  if (filters.brand) q = q.eq('brand', filters.brand)
+  if (filters.area) q = q.eq('area', filters.area)
+  if (filters.condition) q = q.eq('condition', filters.condition)
   if (filters.search) q = q.ilike('searchable_text', `%${filters.search}%`)
   if (filters.gender) q = q.eq('gender', filters.gender)
   if (filters.age_range) q = q.eq('age_range', filters.age_range)
@@ -57,8 +63,14 @@ export async function fetchListings(filters: ListingFilters = {}): Promise<Paged
     case 'price_desc':
       q = q.order('price_buy', { ascending: false, nullsFirst: false })
       break
+    case 'popular':
     case 'rating':
       q = q.order('views_count', { ascending: false })
+      break
+    case 'featured':
+      q = q
+        .order('original_price', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
       break
     case 'newest':
     default:

@@ -3,6 +3,9 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { ProductCard } from '@/components/listings/product-card'
 import { ListingsFilter } from '@/components/listings/listings-filter'
+import { SortSelect } from '@/components/listings/sort-select'
+import { isValidArea } from '@/lib/constants/areas'
+import { CONDITIONS } from '@/lib/constants/conditions'
 import { Button } from '@/components/ui/button'
 import { fetchListings, type ListingFilters } from '@/lib/listings'
 import { listingPublicUrl } from '@/lib/storage'
@@ -11,9 +14,12 @@ import type { ListingCategory, KidsGender, KidsAgeRange } from '@/lib/types'
 interface ListingsPageProps {
   searchParams: Promise<{
     category?: string
+    sub?: string
     size?: string
     color?: string
     brand?: string
+    area?: string
+    condition?: string
     gender?: string
     age?: string
     min?: string
@@ -50,16 +56,22 @@ function parseFilters(sp: Awaited<ListingsPageProps['searchParams']>): ListingFi
     cat === 'kids' && sp.age && VALID_AGES.includes(sp.age as KidsAgeRange)
       ? (sp.age as KidsAgeRange)
       : undefined
-  const sort: ListingFilters['sort'] =
-    sp.sort === 'price_asc' || sp.sort === 'price_desc' || sp.sort === 'rating'
-      ? sp.sort
-      : 'newest'
+  const validSorts = ['price_asc', 'price_desc', 'rating', 'popular', 'featured', 'newest'] as const
+  const sort: ListingFilters['sort'] = (validSorts as readonly string[]).includes(sp.sort ?? '')
+    ? (sp.sort as ListingFilters['sort'])
+    : 'newest'
+  const validConditions = CONDITIONS.map((c) => c.id) as readonly string[]
+  const condition = sp.condition && validConditions.includes(sp.condition) ? sp.condition : undefined
+  const area = isValidArea(sp.area) ? sp.area : undefined
   const page = Math.max(1, Number.parseInt(sp.page ?? '1', 10) || 1)
   return {
     category: cat,
+    sub_category: sp.sub,
     size: sp.size,
     color: sp.color,
     brand: sp.brand,
+    area,
+    condition,
     gender,
     age_range,
     minPrice: sp.min ? Number(sp.min) : undefined,
@@ -102,6 +114,8 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
               <ListingsFilter variant="sheet-only" />
               <p className="text-sm text-muted-foreground hidden sm:block">{total} نتيجة</p>
             </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <SortSelect />
             <form className="flex items-center gap-2">
               <input
                 type="search"
@@ -114,6 +128,7 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                 بحث
               </Button>
             </form>
+            </div>
           </div>
 
           <div className="flex gap-8">

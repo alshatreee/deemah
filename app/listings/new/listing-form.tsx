@@ -21,6 +21,12 @@ import {
   updateListingAction,
 } from '@/app/listings/new/actions'
 import type { Listing, ListingCategory } from '@/lib/types'
+import { COLORS } from '@/lib/constants/colors'
+import { KW_AREAS } from '@/lib/constants/areas'
+import { POPULAR_BRANDS } from '@/lib/constants/brands'
+import { sizesForCategory } from '@/lib/constants/sizes'
+import { subCategoriesFor } from '@/lib/constants/sub-categories'
+import { DELIVERY_METHODS } from '@/lib/constants/delivery'
 
 interface ListingFormProps {
   ownerId: string
@@ -35,8 +41,16 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
   const [images, setImages] = useState<string[]>(initial?.images ?? [])
   const [uploading, setUploading] = useState(false)
   const [category, setCategory] = useState<ListingCategory | ''>(initial?.category ?? '')
+  const [subCategory, setSubCategory] = useState<string>(initial?.sub_category ?? '')
   const [gender, setGender] = useState<string>(initial?.gender ?? '')
   const [ageRange, setAgeRange] = useState<string>(initial?.age_range ?? '')
+  const [color, setColor] = useState<string>(initial?.color ?? '')
+  const [size, setSize] = useState<string>(initial?.size ?? '')
+  const [area, setArea] = useState<string>(initial?.area ?? '')
+  const [brand, setBrand] = useState<string>(initial?.brand ?? '')
+  const [deliveryMethod, setDeliveryMethod] = useState<string>(
+    initial?.delivery_method ?? 'meet_in_person',
+  )
 
   async function handleFiles(filesList: FileList | null) {
     if (!filesList || filesList.length === 0) return
@@ -64,6 +78,12 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
   function onSubmit(formData: FormData) {
     setError(null)
     images.forEach((p) => formData.append('images', p))
+    if (color) formData.set('color', color)
+    if (size) formData.set('size', size)
+    if (area) formData.set('area', area)
+    if (brand) formData.set('brand', brand)
+    if (subCategory) formData.set('sub_category', subCategory)
+    if (deliveryMethod) formData.set('delivery_method', deliveryMethod)
     if (category === 'kids') {
       if (gender) formData.set('gender', gender)
       if (ageRange) formData.set('age_range', ageRange)
@@ -79,6 +99,9 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
       if (result?.error) setError(result.error)
     })
   }
+
+  const sizes = sizesForCategory(category || undefined)
+  const subs = subCategoriesFor(category || undefined)
 
   return (
     <form action={onSubmit} className="space-y-6 max-w-3xl">
@@ -138,7 +161,11 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
           <Select
             name="category"
             value={category}
-            onValueChange={(v) => setCategory(v as ListingCategory)}
+            onValueChange={(v) => {
+              setCategory(v as ListingCategory)
+              setSubCategory('')
+              setSize('')
+            }}
           >
             <SelectTrigger id="category">
               <SelectValue placeholder="اختاري" />
@@ -154,6 +181,24 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
           </Select>
         </div>
 
+        {subs.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="sub_category">النوع</Label>
+            <Select value={subCategory} onValueChange={setSubCategory}>
+              <SelectTrigger id="sub_category">
+                <SelectValue placeholder="اختاري" />
+              </SelectTrigger>
+              <SelectContent>
+                {subs.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="condition">الحالة</Label>
           <Select name="condition" defaultValue={initial?.condition ?? undefined}>
@@ -161,10 +206,10 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
               <SelectValue placeholder="اختاري" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="new">جديد</SelectItem>
-              <SelectItem value="like_new">شبه جديد</SelectItem>
-              <SelectItem value="good">جيد</SelectItem>
-              <SelectItem value="fair">مقبول</SelectItem>
+              <SelectItem value="new">جديد بالتغليف</SelectItem>
+              <SelectItem value="like_new">ممتاز</SelectItem>
+              <SelectItem value="good">جيد جداً</SelectItem>
+              <SelectItem value="fair">جيد</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -203,20 +248,135 @@ export function ListingForm({ ownerId, initial, mode }: ListingFormProps) {
 
         <div className="space-y-2">
           <Label htmlFor="brand">الماركة</Label>
-          <Input id="brand" name="brand" defaultValue={initial?.brand ?? ''} />
+          <Select value={brand} onValueChange={setBrand}>
+            <SelectTrigger id="brand">
+              <SelectValue placeholder="اختاري الماركة" />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {POPULAR_BRANDS.map((b) => (
+                <SelectItem key={b.slug} value={b.label}>
+                  {b.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="size">المقاس</Label>
-          <Input id="size" name="size" defaultValue={initial?.size ?? ''} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="color">اللون</Label>
-          <Input id="color" name="color" defaultValue={initial?.color ?? ''} />
+          {sizes.length > 0 ? (
+            <Select value={size} onValueChange={setSize}>
+              <SelectTrigger id="size">
+                <SelectValue placeholder="اختاري المقاس" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {sizes.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              id="size"
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+            />
+          )}
         </div>
 
         <div className="space-y-2 md:col-span-2">
+          <Label>اللون</Label>
+          <div className="grid grid-cols-8 sm:grid-cols-10 gap-2">
+            {COLORS.map((c) => {
+              const sel = color === c.id
+              const isMulti = c.id === 'multi'
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setColor(sel ? '' : c.id)}
+                  title={c.label}
+                  aria-label={c.label}
+                  aria-pressed={sel}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    sel
+                      ? 'border-primary ring-2 ring-primary/40 ring-offset-2 scale-110'
+                      : 'border-border hover:scale-110'
+                  }`}
+                  style={isMulti ? { backgroundImage: c.hex } : { backgroundColor: c.hex }}
+                />
+              )
+            })}
+          </div>
+          {color && (
+            <p className="text-xs text-muted-foreground">
+              المختار: {COLORS.find((c) => c.id === color)?.label}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="area">المنطقة (للتسليم)</Label>
+          <Select value={area} onValueChange={setArea}>
+            <SelectTrigger id="area">
+              <SelectValue placeholder="اختاري المحافظة" />
+            </SelectTrigger>
+            <SelectContent>
+              {KW_AREAS.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="delivery_method">طريقة التسليم</Label>
+          <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
+            <SelectTrigger id="delivery_method">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DELIVERY_METHODS.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {deliveryMethod !== 'meet_in_person' && (
+          <div className="space-y-2">
+            <Label htmlFor="delivery_fee">رسوم التوصيل (د.ك)</Label>
+            <Input
+              id="delivery_fee"
+              name="delivery_fee"
+              type="number"
+              step="0.5"
+              min="0"
+              max="99"
+              defaultValue={initial?.delivery_fee ?? ''}
+            />
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="original_price">السعر الأصلي (اختياري — لعرض الخصم)</Label>
+          <Input
+            id="original_price"
+            name="original_price"
+            type="number"
+            step="0.001"
+            min="0"
+            defaultValue={initial?.original_price ?? ''}
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="price_buy">سعر البيع (د.ك)</Label>
           <Input
             id="price_buy"
