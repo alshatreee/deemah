@@ -2,11 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 
 export default async function AdminHome() {
   const supabase = await createClient()
-  const [users, listings, orders, disputes] = await Promise.all([
+  const [users, listings, orders, disputes, kyc] = await Promise.all([
     supabase.from('users').select('id', { count: 'exact', head: true }),
     supabase.from('listings').select('id', { count: 'exact', head: true }),
     supabase.from('orders').select('id', { count: 'exact', head: true }),
     supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    supabase
+      .from('users')
+      .select('id', { count: 'exact', head: true })
+      .not('kyc_submitted_at', 'is', null)
+      .is('authenticated_at', null),
   ])
 
   const stats = [
@@ -14,6 +19,7 @@ export default async function AdminHome() {
     { label: 'المنتجات', value: listings.count ?? 0 },
     { label: 'الطلبات', value: orders.count ?? 0 },
     { label: 'نزاعات مفتوحة', value: disputes.count ?? 0 },
+    { label: 'KYC قيد المراجعة', value: kyc.count ?? 0 },
   ]
 
   return (

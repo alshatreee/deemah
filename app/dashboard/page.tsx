@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, MessageSquare, Wallet, Eye, Pencil, Package, Heart, TrendingUp } from 'lucide-react'
+import { Plus, MessageSquare, Wallet, Eye, Pencil, Package, Heart, TrendingUp, ShieldCheck } from 'lucide-react'
 import { requireUser, getProfile } from '@/lib/auth'
 import { fetchUserListings } from '@/lib/listings'
 import { fetchConversations } from '@/lib/messages'
@@ -95,6 +95,25 @@ export default async function DashboardPage() {
             </Button>
           </Link>
         </div>
+
+        {!profile?.authenticated_at && (
+          <Link href="/seller-verification" className="block mb-6">
+            <Card className="border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors">
+              <CardContent className="pt-4 pb-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="h-6 w-6 text-blue-600" />
+                  <div>
+                    <p className="font-semibold text-blue-900">وثّقي حسابكِ</p>
+                    <p className="text-sm text-blue-700">
+                      شارة “موثّقة” تزيد ثقة المشتريات بقطعكِ.
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">ابدئي</Button>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
