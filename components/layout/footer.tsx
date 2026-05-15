@@ -10,6 +10,9 @@ const footerLinks = {
   support: [
     { href: "/faq", label: "الأسئلة الشائعة" },
     { href: "/contact", label: "تواصلي معنا" },
+    { href: "/shipping", label: "الشحن والتسليم" },
+    { href: "/returns", label: "الإرجاع والاسترداد" },
+    { href: "/authenticity", label: "ضمان الأصالة" },
     { href: "/terms", label: "الشروط والأحكام" },
     { href: "/privacy", label: "سياسة الخصوصية" },
   ],

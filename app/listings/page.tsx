@@ -150,14 +150,16 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
                       id={l.id}
                       title={l.title}
                       price={Number(l.price_buy ?? 0)}
+                      originalPrice={l.original_price ? Number(l.original_price) : null}
+                      brand={l.brand}
                       type="sale"
                       image={imageOrPlaceholder(l.images)}
                       seller={{
                         name: l.owner?.full_name ?? l.owner?.username ?? 'بائعة',
                         rating: Number(l.owner?.rating ?? 0),
                       }}
-                      condition={l.condition ?? undefined}
-                      size={l.size ?? undefined}
+                      condition={l.condition}
+                      size={l.size}
                     />
                   ))}
                 </div>
