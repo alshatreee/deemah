@@ -63,6 +63,7 @@ export interface Listing {
   sub_category: string | null
   delivery_method: DeliveryMethod | null
   delivery_fee: number | null
+  authenticity_status: 'none' | 'in_review' | 'verified' | 'rejected' | null
   created_at: string
   updated_at: string
 }

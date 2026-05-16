@@ -13,7 +13,7 @@ export async function approveKycAction(userId: string): Promise<{ error?: string
     .from('users')
     .update({
       authenticated_at: new Date().toISOString(),
-      authenticated_by: admin.id,
+      authenticated_by: admin.userId,
       seller_status: 'approved',
     })
     .eq('id', userId)
