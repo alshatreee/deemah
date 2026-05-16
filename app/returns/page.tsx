@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/footer"
 import { RotateCcw, AlertTriangle, CheckCircle2 } from "lucide-react"
 
 export const metadata = {
-  title: "الإرجاع والاسترداد | ديمة",
+  title: "الإرجاع والاسترداد",
   description: "سياسة الإرجاع والاسترداد في ديمة",
 }
 
@@ -78,6 +78,10 @@ export default function ReturnsPage() {
                 ديمة منصّة وسيطة. القرار النهائي في النزاعات يصدر عن فريق
                 ديمة بعد فحص الأدلّة من الطرفين.
               </p>
+            </section>
+
+            <section className="text-xs text-muted-foreground border-t pt-6 mt-8">
+              <p>آخر تحديث: مايو 2026 · <a href="/terms" className="underline hover:text-primary">الشروط والأحكام</a></p>
             </section>
           </div>
         </div>

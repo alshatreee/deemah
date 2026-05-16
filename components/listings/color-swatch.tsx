@@ -13,7 +13,7 @@ interface ColorSwatchProps {
 export function ColorSwatchGrid({ selected, onToggle, size = 'md' }: ColorSwatchProps) {
   const dim = size === 'sm' ? 'w-7 h-7' : 'w-8 h-8'
   return (
-    <div className="grid grid-cols-6 gap-2 pt-2">
+    <div className="grid grid-cols-5 gap-2 pt-2 mx-auto max-w-[200px]">
       {COLORS.map((c) => {
         const isSel = selected.includes(c.id)
         const isWhite = c.id === 'white'

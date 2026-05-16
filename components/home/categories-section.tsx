@@ -9,7 +9,6 @@ const categories = [
     description: "فساتين، عبايات، حقائب وأكثر",
     image: "/images/category-women.jpg",
     href: "/listings?category=women",
-    count: 1200,
   },
   {
     id: "kids",
@@ -17,7 +16,6 @@ const categories = [
     description: "ملابس راقية للصغار",
     image: "/images/category-kids.jpg",
     href: "/listings?category=kids",
-    count: 350,
   },
 ]
 
@@ -57,9 +55,6 @@ export function CategoriesSection() {
                     </h3>
                     <p className="mt-2 text-white/80">
                       {category.description}
-                    </p>
-                    <p className="mt-1 text-sm text-white/60">
-                      {category.count}+ قطعة
                     </p>
                   </div>
                   

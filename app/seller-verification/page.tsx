@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { KycForm } from './kyc-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'توثيق البائعة | ديمة' }
+export const metadata = { title: 'توثيق البائعة' }
 
 export default async function SellerVerificationPage() {
   const user = await requireUser()

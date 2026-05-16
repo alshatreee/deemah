@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/footer'
 import { KycRow } from './kyc-row'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'مراجعة KYC | admin' }
+export const metadata = { title: 'مراجعة KYC' }
 
 export default async function AdminKycPage() {
   await requireAdmin()

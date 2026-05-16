@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, MessageSquare, Wallet, Eye, Pencil, Package, Heart, TrendingUp, ShieldCheck } from 'lucide-react'
+import { Plus, MessageSquare, Eye, Pencil, Package, Heart, TrendingUp, ShieldCheck } from 'lucide-react'
 import { requireUser, getProfile } from '@/lib/auth'
 import { fetchUserListings } from '@/lib/listings'
 import { fetchConversations } from '@/lib/messages'
@@ -140,17 +140,6 @@ export default async function DashboardPage() {
               </p>
             </CardContent>
           </Card>
-          <Link href="/dashboard/earnings">
-            <Card className="hover:bg-muted/40 transition">
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground">الأرباح (د.ك)</p>
-                <p className="text-2xl font-bold mt-1 flex items-center gap-1">
-                  <Wallet className="h-5 w-5 text-muted-foreground" />
-                  {earnings.total.toLocaleString('ar-KW')}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
         </div>
 
         <div className="flex flex-wrap gap-2">

@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/footer"
 import { ShieldCheck, Eye, FileCheck, Award } from "lucide-react"
 
 export const metadata = {
-  title: "ضمان الأصالة | ديمة",
+  title: "ضمان الأصالة",
   description: "كيف نضمن أصالة القطع الفاخرة في ديمة",
 }
 
@@ -18,7 +18,7 @@ export default function AuthenticityPage() {
               <ShieldCheck className="h-5 w-5" />
               <span className="font-medium text-sm">ضمان الأصالة</span>
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-3">قطعكِ أصلية ١٠٠٪</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-3">نضمن لكِ ١٠٠٪ أصالة كل قطعة</h1>
             <p className="text-muted-foreground">
               أربع طبقات حماية لضمان أصالة كل قطعة فاخرة على ديمة
             </p>
@@ -89,6 +89,10 @@ export default function AuthenticityPage() {
                 التي لم تجتز فحص الأصالة. ابحثي عن شارة “أصلية ✓” قبل
                 شراء قطعة فاخرة.
               </p>
+            </section>
+
+            <section className="text-xs text-muted-foreground border-t pt-6 mt-8">
+              <p>آخر تحديث: مايو 2026 · <a href="/terms" className="underline hover:text-primary">الشروط والأحكام</a></p>
             </section>
           </div>
         </div>

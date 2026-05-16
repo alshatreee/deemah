@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/footer"
 import { Truck, Clock, MapPin, Package } from "lucide-react"
 
 export const metadata = {
-  title: "الشحن والتسليم | ديمة",
+  title: "الشحن والتسليم",
   description: "معلومات الشحن والتسليم في منصة ديمة بالكويت",
 }
 
@@ -81,6 +81,10 @@ export default function ShippingPage() {
                 الشحنة بسبب عنوان غير صحيح، البائعة غير ملزمة بإعادة الشحن
                 مجاناً.
               </p>
+            </section>
+
+            <section className="text-xs text-muted-foreground border-t pt-6 mt-8">
+              <p>آخر تحديث: مايو 2026 · <a href="/terms" className="underline hover:text-primary">الشروط والأحكام</a></p>
             </section>
           </div>
         </div>

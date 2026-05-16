@@ -41,7 +41,7 @@ export function HeroSection({ stats }: HeroSectionProps) {
             </h1>
 
             <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-              بيعي ملابسك مع كويتيات. منصة موثوقة وآمنة لتداول الأزياء الراقية.
+              بيعي ملابسكِ في مجتمع كويتي. منصة موثوقة وآمنة لتداول الأزياء الراقية.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
